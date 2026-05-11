@@ -8,7 +8,7 @@ export const AuthContext = createContext({
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading] = useState(false);
+  const loading = false;
 
   const value = useMemo(() => ({ user, setUser, loading }), [user, loading]);
 
