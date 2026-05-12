@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import hero from "../assets/hero.png";
-import secondimg from "../assets/home-pg-2.jpg";
+import hero from "../assets/home/hero.png";
+import secondimg from "../assets/home/home-pg-2.jpg";
 
 /* ── tiny hook: fires when element enters viewport ── */
 function useInView(threshold = 0.15) {
@@ -468,7 +468,7 @@ const Home = () => {
                 <h3 className="font-display text-xl font-semibold">
                   Have an idea for an event?
                 </h3>
-                <button className="btn-white">Propose Idea</button>
+                <button className="btn-white"><a href="/contactus">Propose Idea</a></button>
               </div>
 
             </div>
