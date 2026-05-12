@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import heroBg from "../assets/volunteer/heroBg.jpg"
 import volunteersIllustration from "../assets/volunteer/illustration.jpeg";
+import { submitVolunteerForm } from "../services/volunteerService";
 
 // ── IMAGE IMPORTS ──────────────────────────────────────────────
 // 🖼️ Hero background image (group photo of volunteers in purple shirts)
@@ -77,12 +78,52 @@ const Volunteer = () => {
   const [form, setForm] = useState({ name: "", email: "", dept: "", skills: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1200);
+    setError("");
+
+    // Validation
+    if (!form.name.trim()) {
+      setError("Full name is required");
+      return;
+    }
+    if (!form.email.trim()) {
+      setError("Email is required");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (!form.dept.trim()) {
+      setError("Department & Batch is required");
+      return;
+    }
+    if (!form.skills.trim()) {
+      setError("Please tell us about your skills");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await submitVolunteerForm({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        major: form.dept.trim(),
+        experience: form.skills.trim(),
+      });
+      setForm({ name: "", email: "", dept: "", skills: "" });
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      setError("Failed to submit application. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -513,6 +554,21 @@ const Volunteer = () => {
                 <p className="form-sub">
                   Fill out the form below to express your interest in joining our volunteer pool for upcoming events.
                 </p>
+
+                {error && (
+                  <div style={{
+                    marginBottom: "1.25rem",
+                    padding: "0.9rem 1rem",
+                    background: "#fee2e2",
+                    border: "1px solid #fecaca",
+                    borderRadius: "0.5rem",
+                    color: "#dc2626",
+                    fontSize: "0.875rem",
+                    fontWeight: "500"
+                  }}>
+                    {error}
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} noValidate>
 
