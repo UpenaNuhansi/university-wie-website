@@ -357,11 +357,11 @@ const Home = () => {
                   Empowering Women in STEM
                 </div>
 
-                <h1 className={`font-display text-2xl sm:text-3xl md:text-4xl font-bold text-purple-900 leading-tight mb-4 fade-up ${heroReady ? "visible" : ""} d2`}>
+                <h1 className={`font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary leading-tight mb-4 fade-up ${heroReady ? "visible" : ""} d2`}>
                   Inspiring the Next Generation of Female Engineers
                 </h1>
 
-                <p className={`font-body text-gray-600 text-sm mb-6 fade-up ${heroReady ? "visible" : ""} d3`}>
+                <p className={`font-body text-gray-800 text-sm mb-6 fade-up ${heroReady ? "visible" : ""} d3`}>
                   IEEE Women in Engineering (WIE) at Sabaragamuwa University of Sri Lanka
                   is dedicated to promoting women engineers and scientists.
                 </p>
@@ -386,13 +386,13 @@ const Home = () => {
                 alt="who we are"
                 className="img-lift rounded-xl shadow-lg w-full"
               />
-              <div className={`stat-badge -top-4 -left-4 fade-up ${whoVisible ? "visible" : ""} d3`}>
+              <div className={`stat-badge -top-4 -left-4 hidden sm:block fade-up ${whoVisible ? "visible" : ""} d3`}>
                 <p className="font-display text-pink-600 font-bold text-lg leading-none">
                   <Counter target={50} />
                 </p>
                 <p className="font-body text-xs text-gray-500 mt-0.5">Events Hosted</p>
               </div>
-              <div className={`stat-badge -bottom-4 right-4 fade-up ${whoVisible ? "visible" : ""} d4`}>
+              <div className={`stat-badge -bottom-4 right-4 hidden sm:block fade-up ${whoVisible ? "visible" : ""} d4`}>
                 <p className="font-display text-pink-600 font-bold text-lg leading-none">
                   <Counter target={500} />
                 </p>
