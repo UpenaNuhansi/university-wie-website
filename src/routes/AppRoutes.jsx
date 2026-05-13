@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Home from '../pages/Home';
+import About from '../pages/About';
 import Events from '../pages/Events';
 import Gallery from '../pages/Gallery';
 import Contact from '../pages/Contact';
@@ -30,6 +31,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={publicLayout(<Home />)} />
+      <Route path="/about" element={publicLayout(<About />)} />
       <Route path="/events" element={publicLayout(<Events />)} />
       <Route path="/gallery" element={publicLayout(<Gallery />)} />
       <Route path="/contact" element={publicLayout(<Contact />)} />

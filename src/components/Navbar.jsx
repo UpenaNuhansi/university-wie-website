@@ -94,13 +94,13 @@ const Navbar = () => {
         .logo-text-block { display: none; }
         @media (min-width: 640px) { .logo-text-block { display: block; } }
 
-        /* desktop links — hidden below 768px */
+        /* desktop links — hidden below 1024px */
         .desktop-links {
           display: none;
           list-style: none; margin: 0; padding: 0;
           align-items: center; gap: 1.75rem;
         }
-        @media (min-width: 768px) { .desktop-links { display: flex; } }
+        @media (min-width: 1024px) { .desktop-links { display: flex; } }
 
         .nav-link {
           position: relative;
@@ -122,12 +122,12 @@ const Navbar = () => {
         .nav-link.active { color: #db2777; font-weight: 600; }
         .nav-link.active::after { width: 100%; background: #db2777; }
 
-        /* desktop CTA — hidden below 768px */
+        /* desktop CTA — hidden below 1024px */
         .desktop-cta {
           display: none;
           align-items: center; gap: 0.75rem;
         }
-        @media (min-width: 768px) { .desktop-cta { display: flex; } }
+        @media (min-width: 1024px) { .desktop-cta { display: flex; } }
 
         .btn-outline-nav {
           border: 1.5px solid #7c3aed; color: #7c3aed;
@@ -164,7 +164,7 @@ const Navbar = () => {
         .btn-solid-nav:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(219,39,119,0.4); }
         .btn-solid-nav:hover::after { transform: translateX(100%); }
 
-        /* hamburger — ONLY visible below 768px */
+        /* hamburger — ONLY visible below 1024px */
         .hamburger {
           display: none;
           background: none; border: none; cursor: pointer;
@@ -172,7 +172,7 @@ const Navbar = () => {
           align-items: center; justify-content: center;
           transition: background 0.2s, transform 0.22s;
         }
-        @media (max-width: 767px) { .hamburger { display: flex; } }
+        @media (max-width: 1023px) { .hamburger { display: flex; } }
         .hamburger:hover { background: #ede9fe; transform: scale(1.08); }
 
         /* mobile menu — completely removed from DOM flow on desktop */
@@ -184,7 +184,7 @@ const Navbar = () => {
           background: rgba(255,255,255,0.98);
         }
         .mobile-menu.open { max-height: 540px; opacity: 1; }
-        @media (min-width: 768px) { .mobile-menu { display: none !important; } }
+        @media (min-width: 1024px) { .mobile-menu { display: none !important; } }
 
         .mobile-inner {
           padding: 0.75rem 1.25rem 1.5rem;
