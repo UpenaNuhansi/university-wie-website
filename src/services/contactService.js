@@ -1,3 +1,4 @@
+// src/services/contactService.js
 import {
   collection,
   addDoc,
@@ -10,26 +11,28 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-const MESSAGES_COLLECTION = 'messages';
+const CONTACT_COLLECTION = 'contact_messages';
 
-export const submitContactMessage = async (message) => {
+// Submit a new contact message
+export const submitContactMessage = async (payload) => {
   try {
-    const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), {
-      ...message,
-      status: 'unread',
+    const docRef = await addDoc(collection(db, CONTACT_COLLECTION), {
+      ...payload,
+      status: 'unread',        // optional: mark as unread
       createdAt: new Date().toISOString(),
     });
-    return { id: docRef.id, ...message };
+    return { id: docRef.id, ...payload };
   } catch (error) {
     console.error('Error submitting contact message:', error);
     throw error;
   }
 };
 
-export const getMessages = async () => {
+// Get all messages (admin use)
+export const getContactMessages = async () => {
   try {
     const q = query(
-      collection(db, MESSAGES_COLLECTION),
+      collection(db, CONTACT_COLLECTION),
       orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
@@ -38,31 +41,33 @@ export const getMessages = async () => {
       ...doc.data(),
     }));
   } catch (error) {
-    console.error('Error fetching messages:', error);
+    console.error('Error fetching contact messages:', error);
     throw error;
   }
 };
 
-export const updateMessage = async (messageId, updates) => {
+// Update a message (e.g., mark as read)
+export const updateContactMessage = async (messageId, updates) => {
   try {
-    const messageRef = doc(db, MESSAGES_COLLECTION, messageId);
+    const messageRef = doc(db, CONTACT_COLLECTION, messageId);
     await updateDoc(messageRef, {
       ...updates,
       updatedAt: new Date().toISOString(),
     });
     return { id: messageId, ...updates };
   } catch (error) {
-    console.error('Error updating message:', error);
+    console.error('Error updating contact message:', error);
     throw error;
   }
 };
 
-export const deleteMessage = async (messageId) => {
+// Delete a message
+export const deleteContactMessage = async (messageId) => {
   try {
-    await deleteDoc(doc(db, MESSAGES_COLLECTION, messageId));
+    await deleteDoc(doc(db, CONTACT_COLLECTION, messageId));
     return true;
   } catch (error) {
-    console.error('Error deleting message:', error);
+    console.error('Error deleting contact message:', error);
     throw error;
   }
 };
