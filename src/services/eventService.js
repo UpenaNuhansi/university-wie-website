@@ -18,6 +18,18 @@ const convertEventData = (data) => {
   const converted = { ...data };
 
   if (data.date?.toDate) converted.date = data.date.toDate();
+  if (converted.registrationEnabled === undefined) {
+    converted.registrationEnabled = Boolean(data.allowRegister || data.registrationLink || data.registerLink);
+  }
+  if (!converted.registrationLink && data.registerLink) {
+    converted.registrationLink = data.registerLink;
+  }
+  if (!converted.registrationType) {
+    converted.registrationType = converted.registrationLink?.includes("docs.google.com") ? "google" : "custom";
+  }
+  if (!converted.registrationLabel) {
+    converted.registrationLabel = converted.registrationType === "google" ? "Open Google Form" : "Register Now";
+  }
   return converted;
 };
 

@@ -18,6 +18,10 @@ export default function EditEvent() {
     location: '',
     description: '',
     image: '',
+    registrationEnabled: false,
+    registrationType: 'google',
+    registrationLabel: 'Register Now',
+    registrationLink: '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -50,6 +54,10 @@ export default function EditEvent() {
         location: data.location || '',
         description: data.description || '',
         image: data.image || '',
+        registrationEnabled: data.registrationEnabled ?? Boolean(data.allowRegister || data.registrationLink || data.registerLink),
+        registrationType: data.registrationType || ((data.registrationLink || data.registerLink || '').includes('docs.google.com') ? 'google' : 'custom'),
+        registrationLabel: data.registrationLabel || (((data.registrationLink || data.registerLink || '').includes('docs.google.com')) ? 'Open Google Form' : 'Register Now'),
+        registrationLink: data.registrationLink || data.registerLink || '',
       });
       setImagePreview(data.image || '');
       setError('');
@@ -62,8 +70,11 @@ export default function EditEvent() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   const handleImageChange = (e) => {
@@ -86,6 +97,9 @@ export default function EditEvent() {
     if (!formData.location.trim()) return setError('Location is required.');
     if (!formData.description.trim()) return setError('Description is required.');
     if (!imagePreview) return setError('Event image is required.');
+    if (formData.registrationEnabled && !formData.registrationLink.trim()) {
+      return setError('Registration link is required when registration is enabled.');
+    }
 
     try {
       setSaving(true);
@@ -101,6 +115,10 @@ export default function EditEvent() {
         location: formData.location,
         description: formData.description,
         image: imageBase64,
+        registrationEnabled: formData.registrationEnabled,
+        registrationType: formData.registrationType,
+        registrationLabel: formData.registrationLabel.trim() || (formData.registrationType === 'google' ? 'Open Google Form' : 'Register Now'),
+        registrationLink: formData.registrationEnabled ? formData.registrationLink.trim() : '',
       });
       showToast('Event updated successfully!', 'success');
       navigate('/admin/events');
@@ -215,6 +233,67 @@ export default function EditEvent() {
                   placeholder="Write a detailed description of the event..."
                   className={inputClass + ' resize-none leading-relaxed'}
                 />
+              </div>
+
+              {/* Registration */}
+              <div className="rounded-2xl border border-purple-100 bg-purple-50/50 p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-sm font-semibold text-gray-900">Registration Settings</h2>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Update the registration form or disable it for this event.
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input
+                      type="checkbox"
+                      name="registrationEnabled"
+                      checked={formData.registrationEnabled}
+                      onChange={handleChange}
+                      className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-200"
+                    />
+                    Registration required
+                  </label>
+                </div>
+
+                {formData.registrationEnabled && (
+                  <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className={labelClass}>Form Type</label>
+                      <select
+                        name="registrationType"
+                        value={formData.registrationType}
+                        onChange={handleChange}
+                        className={inputClass}
+                      >
+                        <option value="google">Google Form</option>
+                        <option value="custom">Custom Registration Form</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Button Label</label>
+                      <input
+                        type="text"
+                        name="registrationLabel"
+                        value={formData.registrationLabel}
+                        onChange={handleChange}
+                        placeholder={formData.registrationType === 'google' ? 'Open Google Form' : 'Register Now'}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className={labelClass}>Registration Link</label>
+                      <input
+                        type="url"
+                        name="registrationLink"
+                        value={formData.registrationLink}
+                        onChange={handleChange}
+                        placeholder="Paste your Google Form or custom form URL"
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Image Upload */}
