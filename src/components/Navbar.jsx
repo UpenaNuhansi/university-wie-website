@@ -264,7 +264,7 @@ const Navbar = () => {
             <Link to="/volunteer" className="btn-outline-nav">
               <span>Volunteer Calling</span>
             </Link>
-            <Link to="/contactus" className="btn-solid-nav">
+            <Link to="/contact" className="btn-solid-nav">
               Contact Us
             </Link>
           </div>
@@ -301,7 +301,7 @@ const Navbar = () => {
             ))}
             <div className="mobile-cta-wrap">
               <Link to="/volunteer" className="mobile-btn-outline">Volunteer Calling</Link>
-              <Link to="/contactus" className="mobile-btn-solid">Contact Us</Link>
+              <Link to="/contact" className="mobile-btn-solid">Contact Us</Link>
             </div>
           </div>
         </div>

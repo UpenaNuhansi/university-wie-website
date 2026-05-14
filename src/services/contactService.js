@@ -71,3 +71,8 @@ export const deleteContactMessage = async (messageId) => {
     throw error;
   }
 };
+
+// Backward-compatible aliases used by admin screens
+export const getMessages = getContactMessages;
+export const updateMessage = updateContactMessage;
+export const deleteMessage = deleteContactMessage;
