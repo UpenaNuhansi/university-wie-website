@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { getMessages, deleteMessage, updateMessage } from '../services/contactService';
 import { formatDateTime } from '../utils/formatDate';
 import Loader from '../components/Loader';
+import { useNotification } from '../context/NotificationContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function ViewMessages() {
   const [messages, setMessages] = useState([]);
@@ -9,6 +11,8 @@ export default function ViewMessages() {
   const [deleting, setDeleting] = useState(null);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all' | 'unread' | 'read'
+  const [confirmMessageId, setConfirmMessageId] = useState(null);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     fetchMessages();
@@ -27,7 +31,6 @@ export default function ViewMessages() {
   };
 
   const handleDelete = async (messageId) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
     try {
       setDeleting(messageId);
       await deleteMessage(messageId);
@@ -35,10 +38,25 @@ export default function ViewMessages() {
       setSelectedMessage(null);
     } catch (error) {
       console.error('Error deleting message:', error);
-      alert('Failed to delete message');
+      showToast('Failed to delete message', 'error');
     } finally {
       setDeleting(null);
     }
+  };
+
+  const requestDelete = (messageId) => {
+    setConfirmMessageId(messageId);
+  };
+
+  const closeDeleteDialog = () => {
+    if (deleting) return;
+    setConfirmMessageId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmMessageId) return;
+    await handleDelete(confirmMessageId);
+    setConfirmMessageId(null);
   };
 
   const handleSelectMessage = async (message) => {
@@ -261,7 +279,7 @@ export default function ViewMessages() {
                   </button>
 
                   <button
-                    onClick={() => handleDelete(selectedMessage.id)}
+                    onClick={() => requestDelete(selectedMessage.id)}
                     disabled={deleting === selectedMessage.id}
                     className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-red-100 transition-all hover:bg-red-600 hover:shadow-md hover:shadow-red-200 active:scale-95 disabled:opacity-50"
                   >
@@ -286,6 +304,17 @@ export default function ViewMessages() {
 
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(confirmMessageId)}
+        title="Delete Message"
+        message="Are you sure you want to delete this message?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous
+        onCancel={closeDeleteDialog}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

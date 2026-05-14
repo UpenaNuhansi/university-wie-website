@@ -7,58 +7,56 @@ import {
   updateDoc,
   query,
   orderBy,
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
+  getDoc,
+  Timestamp,
+} from "firebase/firestore";
+import { db } from "../firebase/config";
 
-const EVENTS_COLLECTION = 'events';
+const EVENTS_COLLECTION = "events";
+
+const convertEventData = (data) => {
+  const converted = { ...data };
+
+  if (data.date?.toDate) converted.date = data.date.toDate();
+  return converted;
+};
 
 export const getEvents = async () => {
-  try {
-    const q = query(collection(db, EVENTS_COLLECTION), orderBy('date', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    throw error;
-  }
+  const q = query(collection(db, EVENTS_COLLECTION), orderBy("date", "desc"));
+  const snap = await getDocs(q);
+
+  return snap.docs.map((d) => ({
+    id: d.id,
+    ...convertEventData(d.data()),
+  }));
+};
+
+export const getEventById = async (id) => {
+  const refDoc = doc(db, EVENTS_COLLECTION, id);
+  const snap = await getDoc(refDoc);
+
+  if (!snap.exists()) throw new Error("Event not found");
+
+  return {
+    id: snap.id,
+    ...convertEventData(snap.data()),
+  };
 };
 
 export const addEvent = async (event) => {
-  try {
-    const docRef = await addDoc(collection(db, EVENTS_COLLECTION), {
-      ...event,
-      createdAt: new Date(),
-    });
-    return { id: docRef.id, ...event };
-  } catch (error) {
-    console.error('Error adding event:', error);
-    throw error;
-  }
+  return await addDoc(collection(db, EVENTS_COLLECTION), {
+    ...event,
+    createdAt: Timestamp.now(),
+  });
 };
 
-export const updateEvent = async (eventId, updates) => {
-  try {
-    const eventRef = doc(db, EVENTS_COLLECTION, eventId);
-    await updateDoc(eventRef, {
-      ...updates,
-      updatedAt: new Date(),
-    });
-    return { id: eventId, ...updates };
-  } catch (error) {
-    console.error('Error updating event:', error);
-    throw error;
-  }
+export const updateEvent = async (id, data) => {
+  await updateDoc(doc(db, EVENTS_COLLECTION, id), {
+    ...data,
+    updatedAt: Timestamp.now(),
+  });
 };
 
-export const deleteEvent = async (eventId) => {
-  try {
-    await deleteDoc(doc(db, EVENTS_COLLECTION, eventId));
-    return true;
-  } catch (error) {
-    console.error('Error deleting event:', error);
-    throw error;
-  }
+export const deleteEvent = async (id) => {
+  await deleteDoc(doc(db, EVENTS_COLLECTION, id));
 };

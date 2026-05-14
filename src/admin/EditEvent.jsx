@@ -1,15 +1,17 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { addEvent } from '../services/eventService';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { updateEvent, getEventById } from '../services/eventService';
 import { compressImage } from '../services/galleryService';
+import Loader from '../components/Loader';
 import { useNotification } from '../context/NotificationContext';
 
-export default function AddEvent() {
+export default function EditEvent() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const { eventId } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [progress, setProgress] = useState(0);
-  const { showToast } = useNotification();
   const [formData, setFormData] = useState({
     title: '',
     date: '',
@@ -19,6 +21,45 @@ export default function AddEvent() {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const { showToast } = useNotification();
+
+  useEffect(() => {
+    fetchEvent();
+  }, [eventId]);
+
+  const fetchEvent = async () => {
+    try {
+      setLoading(true);
+      const data = await getEventById(eventId);
+      
+      // Format date for datetime-local input
+      let formattedDate = '';
+      if (data.date) {
+        const d = new Date(data.date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+
+      setFormData({
+        title: data.title || '',
+        date: formattedDate,
+        location: data.location || '',
+        description: data.description || '',
+        image: data.image || '',
+      });
+      setImagePreview(data.image || '');
+      setError('');
+    } catch (err) {
+      console.error('Error fetching event:', err);
+      setError('Failed to load event');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,30 +85,30 @@ export default function AddEvent() {
     if (!formData.date) return setError('Date & time is required.');
     if (!formData.location.trim()) return setError('Location is required.');
     if (!formData.description.trim()) return setError('Description is required.');
-    if (!imageFile) return setError('Event image is required.');
+    if (!imagePreview) return setError('Event image is required.');
 
     try {
-      setLoading(true);
+      setSaving(true);
       setProgress(0);
-      let imageBase64 = '';
+      let imageBase64 = formData.image;
       if (imageFile) {
         imageBase64 = await compressImage(imageFile, setProgress);
       }
 
-      await addEvent({
+      await updateEvent(eventId, {
         title: formData.title,
         date: new Date(formData.date),
         location: formData.location,
         description: formData.description,
         image: imageBase64,
       });
-      showToast('Event added successfully!', 'success');
+      showToast('Event updated successfully!', 'success');
       navigate('/admin/events');
     } catch (err) {
-      console.error('Error adding event:', err);
-      setError('Failed to add event. Please try again.');
+      console.error('Error updating event:', err);
+      setError('Failed to update event. Please try again.');
     } finally {
-      setLoading(false);
+      setSaving(false);
       setProgress(0);
     }
   };
@@ -76,6 +117,8 @@ export default function AddEvent() {
     'mt-1.5 block w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition-all duration-150 focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-100';
 
   const labelClass = 'block text-xs font-semibold uppercase tracking-widest text-gray-400';
+
+  if (loading) return <Loader />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 px-4 py-12">
@@ -99,8 +142,8 @@ export default function AddEvent() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">New Event</h1>
-              <p className="text-sm text-gray-400">Fill in the details to publish a new event</p>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Edit Event</h1>
+              <p className="text-sm text-gray-400">Update event details</p>
             </div>
           </div>
         </div>
@@ -235,44 +278,37 @@ export default function AddEvent() {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={loading}
+                  disabled={saving}
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-purple-100 transition-all duration-150 hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? (
+                  {saving ? (
                     <>
                       <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                       </svg>
-                      Publishing...
+                      Saving...
                     </>
                   ) : (
                     <>
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      Publish Event
+                      Save Changes
                     </>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/admin/events')}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-500 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 active:scale-95"
+                  className="flex-1 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 active:scale-95"
                 >
                   Cancel
                 </button>
               </div>
-
             </div>
           </div>
         </div>
-
-        {/* Footer note */}
-        <p className="mt-4 text-center text-xs text-gray-300">
-          Published events will appear publicly on the WiE website
-        </p>
-
       </div>
     </div>
   );

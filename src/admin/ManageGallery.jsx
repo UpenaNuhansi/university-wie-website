@@ -6,6 +6,8 @@ import {
   compressImage,
 } from '../services/galleryService';
 import Loader from '../components/Loader';
+import { useNotification } from '../context/NotificationContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const FIXED_CATEGORIES = ['WIE Day', 'Hackathons', 'Summits', 'Other'];
 
@@ -19,6 +21,7 @@ export default function ManageGallery() {
   const [dragOver, setDragOver]   = useState(false);
   const [preview, setPreview]     = useState(null);   // local object URL for preview
   const [imageFile, setImageFile] = useState(null);   // raw File object
+  const [confirmImageId, setConfirmImageId] = useState(null);
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -26,6 +29,7 @@ export default function ManageGallery() {
     category: 'WIE Day',
     customCategory: '',
   });
+  const { showToast } = useNotification();
 
   useEffect(() => { fetchGallery(); }, []);
 
@@ -78,8 +82,8 @@ export default function ManageGallery() {
         ? formData.customCategory.trim() || 'Other'
         : formData.category;
 
-    if (!formData.title.trim()) { alert('Please enter a title'); return; }
-    if (!imageFile)              { alert('Please select an image'); return; }
+    if (!formData.title.trim()) { showToast('Please enter a title', 'error'); return; }
+    if (!imageFile)              { showToast('Please select an image', 'error'); return; }
 
     try {
       setUploading(true);
@@ -103,7 +107,7 @@ export default function ManageGallery() {
       await fetchGallery();
     } catch (error) {
       console.error(error);
-      alert('Failed to add image. The file may be too large — try a smaller image.');
+      showToast('Failed to add image. The file may be too large — try a smaller image.', 'error');
     } finally {
       setUploading(false);
       setProgress(0);
@@ -111,16 +115,30 @@ export default function ManageGallery() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this image?')) return;
     try {
       setDeleting(id);
       await deleteGalleryItem(id);
       setGallery((prev) => prev.filter((item) => item.id !== id));
     } catch {
-      alert('Delete failed');
+      showToast('Delete failed', 'error');
     } finally {
       setDeleting(null);
     }
+  };
+
+  const requestDelete = (id) => {
+    setConfirmImageId(id);
+  };
+
+  const closeDeleteDialog = () => {
+    if (deleting) return;
+    setConfirmImageId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmImageId) return;
+    await handleDelete(confirmImageId);
+    setConfirmImageId(null);
   };
 
   const handleCloseForm = () => {
@@ -469,7 +487,7 @@ export default function ManageGallery() {
                   </div>
 
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => requestDelete(item.id)}
                     disabled={deleting === item.id}
                     className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-100 bg-red-50 py-2 text-[11px] font-semibold text-red-500 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -497,6 +515,17 @@ export default function ManageGallery() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(confirmImageId)}
+        title="Delete Image"
+        message="Are you sure you want to delete this image?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous
+        onCancel={closeDeleteDialog}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

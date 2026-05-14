@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getEvents, deleteEvent } from '../services/eventService';
 import Loader from '../components/Loader';
+import ConfirmDialog from '../components/ConfirmDialog';
+import { useNotification } from '../context/NotificationContext';
 
 export default function ManageEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
+  const [confirmEventId, setConfirmEventId] = useState(null);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     fetchEvents();
@@ -25,18 +29,31 @@ export default function ManageEvents() {
   };
 
   const handleDelete = async (eventId) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
-
     try {
       setDeleting(eventId);
       await deleteEvent(eventId);
       setEvents((prev) => prev.filter((e) => e.id !== eventId));
     } catch (error) {
       console.error('Error deleting event:', error);
-      alert('Failed to delete event');
+      showToast('Failed to delete event', 'error');
     } finally {
       setDeleting(null);
     }
+  };
+
+  const requestDelete = (eventId) => {
+    setConfirmEventId(eventId);
+  };
+
+  const closeDeleteDialog = () => {
+    if (deleting) return;
+    setConfirmEventId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmEventId) return;
+    await handleDelete(confirmEventId);
+    setConfirmEventId(null);
   };
 
   if (loading) return <Loader />;
@@ -144,8 +161,8 @@ export default function ManageEvents() {
                 <p className="col-span-4 text-xs font-semibold text-gray-400">Title</p>
                 <p className="col-span-2 text-xs font-semibold text-gray-400">Date</p>
                 <p className="col-span-2 text-xs font-semibold text-gray-400">Location</p>
-                <p className="col-span-3 text-xs font-semibold text-gray-400">Description</p>
-                <p className="col-span-1 text-right text-xs font-semibold text-gray-400">Action</p>
+                <p className="col-span-2 text-xs font-semibold text-gray-400">Description</p>
+                <p className="col-span-2 text-right text-xs font-semibold text-gray-400">Action</p>
               </div>
 
               {/* List Rows */}
@@ -170,14 +187,21 @@ export default function ManageEvents() {
                       {/* Date */}
                       <div className="col-span-2">
                         {event.date ? (
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                            isPast
-                              ? 'bg-gray-100 text-gray-400'
-                              : 'bg-green-50 text-green-600'
-                          }`}>
-                            {!isPast && <span className="h-1.5 w-1.5 rounded-full bg-green-400" />}
-                            {new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                          </span>
+                          (() => {
+                            const eventDate = event.date instanceof Date ? event.date : new Date(event.date);
+                            const isValidDate = !isNaN(eventDate);
+                            const dateIsPast = isValidDate && eventDate < new Date();
+                            return (
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                                dateIsPast
+                                  ? 'bg-gray-100 text-gray-400'
+                                  : 'bg-green-50 text-green-600'
+                              }`}>
+                                {!dateIsPast && isValidDate && <span className="h-1.5 w-1.5 rounded-full bg-green-400" />}
+                                {isValidDate ? eventDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Invalid Date'}
+                              </span>
+                            );
+                          })()
                         ) : (
                           <span className="text-xs text-gray-300">No date</span>
                         )}
@@ -199,16 +223,25 @@ export default function ManageEvents() {
                       </div>
 
                       {/* Description */}
-                      <div className="col-span-3">
+                      <div className="col-span-2">
                         <p className="truncate text-xs text-gray-400">
                           {event.description || <span className="text-gray-300">No description</span>}
                         </p>
                       </div>
 
                       {/* Actions */}
-                      <div className="col-span-1 flex justify-end">
+                      <div className="col-span-1 flex justify-end gap-1">
+                        <Link
+                          to={`/admin/events/${event.id}/edit`}
+                          className="inline-flex items-center gap-1 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-blue-500 transition-all hover:border-blue-200 hover:bg-blue-100 hover:text-blue-700"
+                        >
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Edit
+                        </Link>
                         <button
-                          onClick={() => handleDelete(event.id)}
+                          onClick={() => requestDelete(event.id)}
                           disabled={deleting === event.id}
                           className="inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50 px-2.5 py-1.5 text-[11px] font-semibold text-red-500 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
                         >
@@ -238,6 +271,17 @@ export default function ManageEvents() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(confirmEventId)}
+        title="Delete Event"
+        message="Are you sure you want to delete this event?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous
+        onCancel={closeDeleteDialog}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
