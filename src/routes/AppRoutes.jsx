@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import Home from '../pages/Home';
 import About from '../pages/About';
 import Events from '../pages/Events';
+import EventDetails from '../pages/EventDetails';
 import Gallery from '../pages/Gallery';
 import Contact from '../pages/Contact';
 import Volunteer from '../pages/Volunteer';
@@ -17,6 +18,7 @@ import ManageGallery from '../admin/ManageGallery';
 import ViewMessages from '../admin/ViewMessages';
 import ViewVolunteers from '../admin/ViewVolunteers';
 import AddEvent from '../admin/AddEvent';
+import EditEvent from '../admin/EditEvent';
 
 const publicLayout = (children) => (
   <div className="flex min-h-screen flex-col">
@@ -33,6 +35,7 @@ export default function AppRoutes() {
       <Route path="/" element={publicLayout(<Home />)} />
       <Route path="/about" element={publicLayout(<About />)} />
       <Route path="/events" element={publicLayout(<Events />)} />
+      <Route path="/events/:eventId" element={publicLayout(<EventDetails />)} />
       <Route path="/gallery" element={publicLayout(<Gallery />)} />
       <Route path="/contact" element={publicLayout(<Contact />)} />
       <Route path="/volunteer" element={publicLayout(<Volunteer />)} />
@@ -52,6 +55,7 @@ export default function AppRoutes() {
         <Route path="messages" element={<ViewMessages />} />
         <Route path="volunteers" element={<ViewVolunteers />} />
         <Route path="events/add" element={<AddEvent />} />
+        <Route path="events/:eventId/edit" element={<EditEvent />} />
       </Route>
 
       <Route path="/404" element={publicLayout(<NotFound />)} />

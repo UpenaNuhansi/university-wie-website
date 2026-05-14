@@ -3,6 +3,8 @@ import { getVolunteers, deleteVolunteer, updateVolunteer } from '../services/vol
 import { sendVolunteerStatusEmail } from '../services/emailService';
 import { formatDateTime } from '../utils/formatDate';
 import Loader from '../components/Loader';
+import { useNotification } from '../context/NotificationContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function ViewVolunteers() {
   const [volunteers, setVolunteers] = useState([]);
@@ -11,6 +13,8 @@ export default function ViewVolunteers() {
   const [processing, setProcessing] = useState(null); // Track approve/reject actions
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all' | 'pending' | 'approved' | 'rejected'
+  const [confirmVolunteerId, setConfirmVolunteerId] = useState(null);
+  const { showToast } = useNotification();
 
   useEffect(() => {
     fetchVolunteers();
@@ -53,10 +57,10 @@ export default function ViewVolunteers() {
         setSelectedVolunteer({ ...selectedVolunteer, status: 'approved' });
       }
       
-      alert('✅ Volunteer approved and email sent!');
+      showToast('✅ Volunteer approved and email sent!', 'success');
     } catch (error) {
       console.error('Error approving volunteer:', error);
-      alert('Failed to approve volunteer');
+        showToast('Failed to approve volunteer', 'error');
     } finally {
       setProcessing(null);
     }
@@ -87,17 +91,16 @@ export default function ViewVolunteers() {
         setSelectedVolunteer({ ...selectedVolunteer, status: 'rejected' });
       }
       
-      alert('❌ Volunteer rejected and email sent!');
+      showToast('❌ Volunteer rejected and email sent!', 'success');
     } catch (error) {
       console.error('Error rejecting volunteer:', error);
-      alert('Failed to reject volunteer');
+        showToast('Failed to reject volunteer', 'error');
     } finally {
       setProcessing(null);
     }
   };
 
   const handleDelete = async (volunteerId) => {
-    if (!confirm('Are you sure you want to delete this volunteer application?')) return;
     try {
       setDeleting(volunteerId);
       await deleteVolunteer(volunteerId);
@@ -105,10 +108,25 @@ export default function ViewVolunteers() {
       setSelectedVolunteer(null);
     } catch (error) {
       console.error('Error deleting volunteer:', error);
-      alert('Failed to delete volunteer');
+      showToast('Failed to delete volunteer', 'error');
     } finally {
       setDeleting(null);
     }
+  };
+
+  const requestDelete = (volunteerId) => {
+    setConfirmVolunteerId(volunteerId);
+  };
+
+  const closeDeleteDialog = () => {
+    if (deleting) return;
+    setConfirmVolunteerId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmVolunteerId) return;
+    await handleDelete(confirmVolunteerId);
+    setConfirmVolunteerId(null);
   };
 
   if (loading) return <Loader />;
@@ -404,7 +422,7 @@ export default function ViewVolunteers() {
                   </div>
 
                   <button
-                    onClick={() => handleDelete(selectedVolunteer.id)}
+                    onClick={() => requestDelete(selectedVolunteer.id)}
                     disabled={deleting === selectedVolunteer.id}
                     className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-red-100 transition-all hover:bg-red-600 hover:shadow-md hover:shadow-red-200 active:scale-95 disabled:opacity-50"
                   >
@@ -430,6 +448,17 @@ export default function ViewVolunteers() {
 
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(confirmVolunteerId)}
+        title="Delete Application"
+        message="Are you sure you want to delete this volunteer application?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous
+        onCancel={closeDeleteDialog}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

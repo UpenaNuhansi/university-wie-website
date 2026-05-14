@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import hero from "../assets/home/hero.png";
 import secondimg from "../assets/home/home-pg-2.jpg";
+import useFetchEvents from "../hooks/useFetchEvents";
+import { formatDate } from "../utils/formatDate";
 
 /* ── tiny hook: fires when element enters viewport ── */
 function useInView(threshold = 0.15) {
@@ -43,6 +45,14 @@ const Home = () => {
   /* section refs */
   const [whoRef, whoVisible] = useInView();
   const [eventsRef, eventsVisible] = useInView();
+
+  /* fetch events */
+  const { events, loading } = useFetchEvents();
+
+  /* get upcoming events (next 3) */
+  const upcomingEvents = events
+    .filter(event => new Date(event.date) >= new Date())
+    .slice(0, 3);
 
   return (
     <>
@@ -436,32 +446,50 @@ const Home = () => {
 
             <div className="grid md:grid-cols-3 gap-6">
 
-              {/* BIG CARD */}
-              <div className={`event-big md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d2`}>
-                <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">Nov 15, 2024</p>
-                <h3 className="font-display text-xl sm:text-2xl font-semibold mb-1 leading-snug">
-                  Women in Tech Leadership Summit
-                </h3>
-                <button className="btn-ghost">Register Now</button>
-              </div>
+              {/* BIG CARD - First Event */}
+              {!loading && upcomingEvents.length > 0 ? (
+                <div className={`event-big md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d2`}>
+                  <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">{formatDate(upcomingEvents[0].date)}</p>
+                  <h3 className="font-display text-xl sm:text-2xl font-semibold mb-1 leading-snug">
+                    {upcomingEvents[0].title}
+                  </h3>
+                  <a href={`/events/${upcomingEvents[0].id}`} className="btn-ghost">View Details</a>
+                </div>
+              ) : (
+                <div className={`event-big md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d2`}>
+                  <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">No upcoming events</p>
+                </div>
+              )}
 
-              {/* SIDE CARD */}
-              <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d3`}>
-                <p className="font-body text-sm text-gray-400 mb-2">Nov 22</p>
-                <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
-                  Python for Data Science Bootcamp
-                </h3>
-                <a href="#" className="pink-link">View Details →</a>
-              </div>
+              {/* SIDE CARD - Second Event */}
+              {!loading && upcomingEvents.length > 1 ? (
+                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d3`}>
+                  <p className="font-body text-sm text-gray-400 mb-2">{formatDate(upcomingEvents[1].date)}</p>
+                  <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
+                    {upcomingEvents[1].title}
+                  </h3>
+                  <a href={`/events/${upcomingEvents[1].id}`} className="pink-link">View Details →</a>
+                </div>
+              ) : (
+                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d3`}>
+                  <p className="font-body text-sm text-gray-400 mb-2">No event</p>
+                </div>
+              )}
 
-              {/* SMALL */}
-              <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d4`}>
-                <p className="font-body text-sm text-gray-400 mb-2">Dec 05</p>
-                <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
-                  Career Mentorship Session
-                </h3>
-                <a href="#" className="pink-link">View Details →</a>
-              </div>
+              {/* SMALL - Third Event */}
+              {!loading && upcomingEvents.length > 2 ? (
+                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d4`}>
+                  <p className="font-body text-sm text-gray-400 mb-2">{formatDate(upcomingEvents[2].date)}</p>
+                  <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
+                    {upcomingEvents[2].title}
+                  </h3>
+                  <a href={`/events/${upcomingEvents[2].id}`} className="pink-link">View Details →</a>
+                </div>
+              ) : (
+                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d4`}>
+                  <p className="font-body text-sm text-gray-400 mb-2">No event</p>
+                </div>
+              )}
 
               {/* CTA */}
               <div className={`event-cta md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d5`}>
