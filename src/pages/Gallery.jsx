@@ -183,31 +183,36 @@ export default function Gallery() {
         }
 
         .gal-eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin: 0 0 18px;
+          padding: 6px 16px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.9);
+          box-shadow: 0 8px 24px rgba(122, 33, 158, 0.12);
+          border: 1px solid rgba(122, 33, 158, 0.08);
           font-size: 0.7rem;
-          font-weight: 700;
+          font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.16em;
-          color: var(--purple-600);
-          margin: 0 0 14px;
+          letter-spacing: 0.18em;
+          color: var(--purple-900);
           position: relative;
-          display: inline-block;
+          backdrop-filter: blur(8px);
         }
 
-        /* Small decorative line beside eyebrow */
-        .gal-eyebrow::before,
-        .gal-eyebrow::after {
-          content: '';
-          display: inline-block;
-          width: 28px;
-          height: 1.5px;
-          background: var(--purple-600);
-          vertical-align: middle;
-          border-radius: 2px;
-          opacity: 0.5;
+        .gal-eyebrow-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--pink-600), #c026d3);
+          box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.12);
+          flex: 0 0 auto;
         }
 
-        .gal-eyebrow::before { margin-right: 10px; }
-        .gal-eyebrow::after  { margin-left:  10px; }
+        .gal-eyebrow-label {
+          line-height: 1;
+        }
 
         .gal-hero-title {
           font-family: 'Cormorant Garamond', serif;
@@ -472,7 +477,8 @@ export default function Gallery() {
             className={`gal-eyebrow f-up ${heroVisible ? 'vis' : ''}`}
             style={{ transitionDelay: '0.04s' }}
           >
-            Visual Journey
+            <span className="gal-eyebrow-dot" aria-hidden="true" />
+            <span className="gal-eyebrow-label">Visual Journey</span>
           </p>
           <h1
             className={`gal-hero-title f-up ${heroVisible ? 'vis' : ''}`}

@@ -15,6 +15,8 @@ export default function EditEvent() {
   const [formData, setFormData] = useState({
     title: '',
     date: '',
+    startTime: '',
+    endTime: '',
     location: '',
     description: '',
     image: '',
@@ -23,8 +25,7 @@ export default function EditEvent() {
     registrationLabel: 'Register Now',
     registrationLink: '',
   });
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imageItems, setImageItems] = useState([]);
   const { showToast } = useNotification();
 
   useEffect(() => {
@@ -36,21 +37,29 @@ export default function EditEvent() {
       setLoading(true);
       const data = await getEventById(eventId);
       
-      // Format date for datetime-local input
+      // Format date for date input
       let formattedDate = '';
       if (data.date) {
         const d = new Date(data.date);
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+        formattedDate = `${year}-${month}-${day}`;
       }
+
+      const fallbackStartTime = data.date
+        ? (() => {
+            const d = new Date(data.date);
+            if (Number.isNaN(d.getTime())) return '';
+            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+          })()
+        : '';
 
       setFormData({
         title: data.title || '',
         date: formattedDate,
+        startTime: data.startTime || fallbackStartTime,
+        endTime: data.endTime || '',
         location: data.location || '',
         description: data.description || '',
         image: data.image || '',
@@ -59,7 +68,14 @@ export default function EditEvent() {
         registrationLabel: data.registrationLabel || (((data.registrationLink || data.registerLink || '').includes('docs.google.com')) ? 'Open Google Form' : 'Register Now'),
         registrationLink: data.registrationLink || data.registerLink || '',
       });
-      setImagePreview(data.image || '');
+      const eventImages = Array.isArray(data.images) && data.images.length ? data.images : data.image ? [data.image] : [];
+      setImageItems(
+        eventImages.map((preview, index) => ({
+          id: `existing-${index}-${preview.slice(0, 24)}`,
+          preview,
+          file: null,
+        }))
+      );
       setError('');
     } catch (err) {
       console.error('Error fetching event:', err);
@@ -78,14 +94,36 @@ export default function EditEvent() {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const readers = files.map(
+      (file, index) =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve({
+              id: `new-${Date.now()}-${index}-${file.name}`,
+              file,
+              preview: reader.result,
+            });
+          };
+          reader.readAsDataURL(file);
+        })
+    );
+
+    Promise.all(readers).then((newItems) => {
+      setImageItems((prev) => [...prev, ...newItems]);
+    });
+
+    e.target.value = '';
+  };
+
+  const removeImage = (id) => {
+    setImageItems((prev) => prev.filter((item) => item.id !== id));
+    if (imageItems.length <= 1) {
+      const input = document.getElementById('image-input');
+      if (input) input.value = '';
     }
   };
 
@@ -93,10 +131,11 @@ export default function EditEvent() {
     e.preventDefault();
     setError('');
     if (!formData.title.trim()) return setError('Event title is required.');
-    if (!formData.date) return setError('Date & time is required.');
+    if (!formData.date) return setError('Date is required.');
+    if (!formData.startTime || !formData.endTime) return setError('Start time and end time are required.');
     if (!formData.location.trim()) return setError('Location is required.');
     if (!formData.description.trim()) return setError('Description is required.');
-    if (!imagePreview) return setError('Event image is required.');
+    if (!imageItems.length) return setError('At least one event image is required.');
     if (formData.registrationEnabled && !formData.registrationLink.trim()) {
       return setError('Registration link is required when registration is enabled.');
     }
@@ -104,17 +143,32 @@ export default function EditEvent() {
     try {
       setSaving(true);
       setProgress(0);
-      let imageBase64 = formData.image;
-      if (imageFile) {
-        imageBase64 = await compressImage(imageFile, setProgress);
+      const imageUrls = [];
+      for (let index = 0; index < imageItems.length; index += 1) {
+        const item = imageItems[index];
+        if (item.file) {
+          const imageBase64 = await compressImage(item.file, (fileProgress) => {
+            const overallProgress = Math.round(((index + (fileProgress / 100)) / imageItems.length) * 100);
+            setProgress(overallProgress);
+          });
+          imageUrls.push(imageBase64);
+        } else {
+          imageUrls.push(item.preview);
+        }
       }
+
+      const [year, month, day] = formData.date.split('-').map(Number);
+      const eventDate = new Date(year, month - 1, day);
 
       await updateEvent(eventId, {
         title: formData.title,
-        date: new Date(formData.date),
+        date: eventDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
         location: formData.location,
         description: formData.description,
-        image: imageBase64,
+        image: imageUrls[0] || '',
+        images: imageUrls,
         registrationEnabled: formData.registrationEnabled,
         registrationType: formData.registrationType,
         registrationLabel: formData.registrationLabel.trim() || (formData.registrationType === 'google' ? 'Open Google Form' : 'Register Now'),
@@ -197,14 +251,34 @@ export default function EditEvent() {
                 />
               </div>
 
-              {/* Date + Location row */}
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* Date + Time + Location row */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <label className={labelClass}>Date & Time</label>
+                  <label className={labelClass}>Date</label>
                   <input
-                    type="datetime-local"
+                    type="date"
                     name="date"
                     value={formData.date}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Start Time</label>
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>End Time</label>
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={formData.endTime}
                     onChange={handleChange}
                     className={inputClass}
                   />
@@ -298,12 +372,13 @@ export default function EditEvent() {
 
               {/* Image Upload */}
               <div>
-                <label className={labelClass}>Event Image</label>
+                <label className={labelClass}>Event Images</label>
                 <div className="mt-1.5 space-y-3">
                   <div className="relative">
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleImageChange}
                       className="hidden"
                       id="image-input"
@@ -317,9 +392,9 @@ export default function EditEvent() {
                       </svg>
                       <div className="text-center">
                         <p className="text-sm font-medium text-gray-700">
-                          {imageFile ? imageFile.name : 'Click to upload or drag and drop'}
+                          {imageItems.length ? `${imageItems.length} image${imageItems.length > 1 ? 's' : ''} selected` : 'Click to upload or drag and drop'}
                         </p>
-                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB each</p>
                       </div>
                     </label>
                   </div>
@@ -328,22 +403,25 @@ export default function EditEvent() {
                       <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
                     </div>
                   )}
-                  {imagePreview && (
-                    <div className="relative rounded-lg overflow-hidden border border-gray-200">
-                      <img src={imagePreview} alt="Preview" className="h-32 w-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImageFile(null);
-                          setImagePreview('');
-                          document.getElementById('image-input').value = '';
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded hover:bg-red-600"
-                      >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+                  {imageItems.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {imageItems.map((item, index) => (
+                        <div key={item.id} className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                          <img src={item.preview} alt={`Preview ${index + 1}`} className="h-32 w-full object-cover" />
+                          <div className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white">
+                            {index === 0 ? 'Cover' : `Image ${index + 1}`}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeImage(item.id)}
+                            className="absolute right-2 top-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg shadow-red-200 transition hover:bg-red-600"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

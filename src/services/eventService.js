@@ -14,6 +14,22 @@ import { db } from "../firebase/config";
 
 const EVENTS_COLLECTION = "events";
 
+const normalizeEventImages = (data) => {
+  if (Array.isArray(data.images)) {
+    return data.images.filter(Boolean);
+  }
+
+  if (data.images) {
+    return [data.images].filter(Boolean);
+  }
+
+  if (data.image) {
+    return [data.image].filter(Boolean);
+  }
+
+  return [];
+};
+
 const convertEventData = (data) => {
   const converted = { ...data };
 
@@ -30,6 +46,15 @@ const convertEventData = (data) => {
   if (!converted.registrationLabel) {
     converted.registrationLabel = converted.registrationType === "google" ? "Open Google Form" : "Register Now";
   }
+
+  converted.images = normalizeEventImages(data);
+  if (!converted.image && converted.images.length) {
+    converted.image = converted.images[0];
+  }
+  if (!converted.images.length && converted.image) {
+    converted.images = [converted.image];
+  }
+
   return converted;
 };
 
@@ -56,15 +81,21 @@ export const getEventById = async (id) => {
 };
 
 export const addEvent = async (event) => {
+  const images = normalizeEventImages(event);
   return await addDoc(collection(db, EVENTS_COLLECTION), {
     ...event,
+    image: event.image || images[0] || "",
+    images,
     createdAt: Timestamp.now(),
   });
 };
 
 export const updateEvent = async (id, data) => {
+  const images = normalizeEventImages(data);
   await updateDoc(doc(db, EVENTS_COLLECTION, id), {
     ...data,
+    image: data.image || images[0] || "",
+    images,
     updatedAt: Timestamp.now(),
   });
 };
