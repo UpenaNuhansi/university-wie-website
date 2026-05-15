@@ -9,6 +9,7 @@ import Gallery from '../pages/Gallery';
 import Contact from '../pages/Contact';
 import Volunteer from '../pages/Volunteer';
 import Login from '../pages/Login';
+import ExecutiveCommittee from '../pages/ExecutiveCommittee';
 import NotFound from '../pages/NotFound';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AdminLayout from '../admin/AdminLayout';
@@ -17,6 +18,7 @@ import ManageEvents from '../admin/ManageEvents';
 import ManageGallery from '../admin/ManageGallery';
 import ViewMessages from '../admin/ViewMessages';
 import ViewVolunteers from '../admin/ViewVolunteers';
+import ManageExCom from '../admin/ManageExCom';
 import AddEvent from '../admin/AddEvent';
 import EditEvent from '../admin/EditEvent';
 
@@ -37,6 +39,7 @@ export default function AppRoutes() {
       <Route path="/events" element={publicLayout(<Events />)} />
       <Route path="/events/:eventId" element={publicLayout(<EventDetails />)} />
       <Route path="/gallery" element={publicLayout(<Gallery />)} />
+      <Route path="/excom" element={publicLayout(<ExecutiveCommittee />)} />
       <Route path="/contact" element={publicLayout(<Contact />)} />
       <Route path="/volunteer" element={publicLayout(<Volunteer />)} />
       <Route path="/login" element={publicLayout(<Login />)} />
@@ -54,6 +57,7 @@ export default function AppRoutes() {
         <Route path="gallery" element={<ManageGallery />} />
         <Route path="messages" element={<ViewMessages />} />
         <Route path="volunteers" element={<ViewVolunteers />} />
+        <Route path="excom" element={<ManageExCom />} />
         <Route path="events/add" element={<AddEvent />} />
         <Route path="events/:eventId/edit" element={<EditEvent />} />
       </Route>
