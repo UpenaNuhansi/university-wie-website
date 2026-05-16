@@ -25,9 +25,9 @@ Add your page screenshots here. A simple approach is to place them in a folder s
 
 ### Home Page
 
-![Home page screenshot](docs/screenshots/HomePage_Mobile.png)
+![Home page screenshot](docs/screenshots/HomePageMobile.png)
 
-![Home page screenshot](docs/screenshots/HomePage_Desktop.png)
+![Home page screenshot](docs/screenshots/HomePageDesktop.png)
 
 
 ### About Page
