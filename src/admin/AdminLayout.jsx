@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import ConfirmDialog from '../components/ConfirmDialog';
+import adminLogo from '../assets/logo/wie-logo-nav.png';
 
 const navItems = [
   {
@@ -97,14 +98,9 @@ export default function AdminLayout() {
         {/* Brand */}
         <div className="border-b border-gray-100 px-5 py-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600 shadow-md shadow-purple-200">
-              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
+            <img src={adminLogo} alt="WIE logo" className=" object-cover" />
             <div>
-              <p className="text-sm font-bold tracking-tight text-gray-900">WiE Admin</p>
-              <p className="text-[11px] text-gray-400">IEEE Student Branch</p>
+              {/* <p className="text-[11px] text-gray-400">IEEE Student Branch</p> */}
             </div>
           </div>
         </div>

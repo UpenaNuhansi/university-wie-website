@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExComCard from '../components/ExComCard';
 import { getExComMembers } from '../services/excomService';
-import { getDynamicExComMembers, getPastCommittees } from '../utils/dynamicExCom';
+import { getPastCommittees } from '../utils/dynamicExCom';
+import { excomData } from '../utils/excomData';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@iconify/react';
 import Loader from '../components/Loader';
+import AutoCarousel from '../components/AutoCarousel';
 
 const ExecutiveCommittee = () => {
   const navigate = useNavigate();
@@ -39,14 +41,32 @@ const ExecutiveCommittee = () => {
     try {
       setLoading(true);
       const firestoreData = await getExComMembers();
+      const currentYear = '2025/2026';
+      const currentYearBase = excomData.find(section => section.year === currentYear)?.members || [];
       
-      // 1. Get dynamic members for 2025/26 from assets
-      const currentExCom = getDynamicExComMembers().map(m => ({
+      // 1. Get 2025/26 members from the committee data source
+      const currentExCom = currentYearBase.map(m => ({
         ...m,
-        year: "2025/2026",
-        status: "Current Excom",
+        year: currentYear,
+        status: 'Current Excom',
         type: 'card'
       }));
+
+      const currentYearFirestore = firestoreData
+        .filter(m => m.year === currentYear)
+        .map(m => ({
+          ...m,
+          type: m.postType === 'group' ? 'poster' : 'card'
+        }));
+
+      let mergedCurrentYear = [];
+      // If admin has added any Firestore entries for the current year, show only those.
+      if (currentYearFirestore.length > 0) {
+        mergedCurrentYear = currentYearFirestore;
+      } else {
+        // Otherwise use the hardcoded committee list
+        mergedCurrentYear = [...currentExCom];
+      }
 
       // 2. Get past committee posters from assets/post folder
       const pastPosters = getPastCommittees();
@@ -54,9 +74,14 @@ const ExecutiveCommittee = () => {
       let finalData = [];
 
       if (firestoreData.length > 0) {
-        // Prioritize dynamic data for 2025/26, include other years from firestore
-        const otherYears = firestoreData.filter(m => m.year !== "2025/2026");
-        finalData = [...currentExCom, ...otherYears];
+        // Prioritize dynamic data for 2025/26, but include admin-added current year entries too
+        const otherYears = firestoreData
+          .filter(m => m.year !== currentYear)
+          .map(m => ({
+            ...m,
+            type: m.postType === 'group' ? 'poster' : (m.type || 'card')
+          }));
+        finalData = [...mergedCurrentYear, ...otherYears];
       } else {
         // If no firestore data, just use current excom and past posters
         finalData = [...currentExCom, ...pastPosters];
@@ -67,10 +92,10 @@ const ExecutiveCommittee = () => {
     } catch (error) {
       console.error('Error fetching members:', error);
       // Fallback: Show what we have dynamically
-      setMembers([...getDynamicExComMembers().map(m => ({
+      setMembers([...currentYearBase.map(m => ({
         ...m,
-        year: "2025/2026",
-        status: "Current Excom",
+        year: '2025/2026',
+        status: 'Current Excom',
         type: 'card'
       })), ...getPastCommittees()]);
       setTimeout(() => setIsReady(true), 100);
@@ -178,24 +203,12 @@ const ExecutiveCommittee = () => {
             )}
 
             {/* Render Posters */}
-            {section.items.filter(i => i.type === 'poster').map((poster, pIdx) => (
-              <div key={pIdx} className="max-w-5xl mx-auto px-4 mt-8">
-                <div className="group relative bg-white p-2 md:p-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(76,29,149,0.1)] border border-purple-50 overflow-hidden transition-all duration-500 hover:shadow-[0_30px_60px_rgba(76,29,149,0.15)]">
-                  <div className="w-full rounded-[1.5rem] overflow-hidden bg-purple-50/50">
-                    <img 
-                      src={poster.image} 
-                      alt={`Executive Committee Poster ${section.year}`}
-                      className="w-full h-auto object-contain block mx-auto"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="mt-4 flex justify-between items-center px-4 py-2 border-t border-purple-50">
-                    <span className="text-primary/40 text-[10px] uppercase tracking-[0.2em] font-bold">Official Poster</span>
-                    <span className="text-primary/60 text-xs font-serif italic">{section.year} Session</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {section.items.some(i => i.type === 'poster') && (
+              <AutoCarousel
+                year={section.year}
+                posters={section.items.filter(i => i.type === 'poster')}
+              />
+            )}
 
             {/* Render Tables */}
             {section.items.some(i => i.type === 'table') && (

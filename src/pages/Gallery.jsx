@@ -84,7 +84,7 @@ function useReveal(threshold = 0.08) {
   return [ref, visible];
 }
 
-const FIXED_CATEGORIES = ['All', 'WIE Day', 'Hackathons', 'Summits'];
+const FIXED_CATEGORIES = ['All', 'Aurelia', 'PerlHack', 'Hope'];
 
 export default function Gallery() {
   const [gallery, setGallery]               = useState([]);

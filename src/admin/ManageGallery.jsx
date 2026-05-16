@@ -10,7 +10,7 @@ import Loader from '../components/Loader';
 import { useNotification } from '../context/NotificationContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 
-const FIXED_CATEGORIES = ['WIE Day', 'Hackathons', 'Summits', 'Other'];
+const FIXED_CATEGORIES = ['Aurelia', 'PerlHack', 'Hope', 'Other'];
 
 export default function ManageGallery() {
   const [gallery, setGallery]     = useState([]);
@@ -29,13 +29,13 @@ export default function ManageGallery() {
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'WIE Day',
+    category: 'Aurelia',
     description: '',
     customCategory: '',
   });
   const [editFormData, setEditFormData] = useState({
     title: '',
-    category: 'WIE Day',
+    category: 'Aurelia',
     description: '',
     customCategory: '',
   });
@@ -112,7 +112,7 @@ export default function ManageGallery() {
       });
 
       setProgress(100);
-      setFormData({ title: '', category: 'WIE Day', description: '', customCategory: '' });
+      setFormData({ title: '', category: 'Aurelia', description: '', customCategory: '' });
       clearImage();
       setShowForm(false);
       await fetchGallery();
@@ -154,7 +154,7 @@ export default function ManageGallery() {
 
   const handleCloseForm = () => {
     setShowForm(false);
-    setFormData({ title: '', category: 'WIE Day', description: '', customCategory: '' });
+    setFormData({ title: '', category: 'Aurelia', description: '', customCategory: '' });
     clearImage();
   };
 
@@ -172,7 +172,7 @@ export default function ManageGallery() {
   const closeEditModal = () => {
     if (savingEdit) return;
     setEditingItem(null);
-    setEditFormData({ title: '', category: 'WIE Day', description: '', customCategory: '' });
+    setEditFormData({ title: '', category: 'Aurelia', description: '', customCategory: '' });
   };
 
   const handleEditSubmit = async (e) => {

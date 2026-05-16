@@ -18,19 +18,19 @@ function useInView(threshold = 0.15) {
 
 const socialLinks = [
   {
-    href: "https://facebook.com",
+    href: "https://www.facebook.com/IEEE.WIE.SUSL",
     icon: "mdi:facebook",
     label: "Facebook",
     color: "#1877F2",
   },
   {
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/ieee_wie_susl?igsh=aGFpc3F6c3FnczVs",
     icon: "mdi:instagram",
     label: "Instagram",
     color: "#E1306C",
   },
   {
-    href: "https://linkedin.com",
+    href: "https://www.linkedin.com/company/ieee-wie-student-branch-affinity-group-of-susl/",
     icon: "mdi:linkedin",
     label: "LinkedIn",
     color: "#0A66C2",
@@ -42,7 +42,7 @@ const socialLinks = [
     color: "#a5a4a4",
   },
   {
-    href: "mailto:wie.susl@ieee.org",
+    href: "mailto:ieeewieagsusl@gmail.com",
     icon: "mdi:gmail",            
     label: "Gmail",
     color: "#EA4335",
@@ -55,6 +55,8 @@ const quickLinks = [
   { label: "Gallery",  href: "/gallery" },
   { label: "Excom",    href: "/excom" },
   { label: "Events",   href: "/events" },
+  { label: "Volunteer Calling",   href: "/volunteer" },
+  { label: "Contact Us",   href: "/contact" }
 ];
 
 const Footer = () => {

@@ -446,7 +446,7 @@ const Contact = () => {
               </div>
               <div>
                 <div className="info-label">Official Email</div>
-                <div className="info-value"><a href="mailto:wie@susl.lk">wie@susl.lk</a></div>
+                <div className="info-value"><a href="mailto:ieeewieagsusl@gmail.com">ieeewieagsusl@gmail.com</a></div>
               </div>
             </div>
 
@@ -470,10 +470,10 @@ const Contact = () => {
 
             <h3 className="social-title">Follow Us</h3>
             <div className="social-row">
-              <a href="#" className="social-btn">{socialIcons.facebook}</a>
-              <a href="#" className="social-btn">{socialIcons.instagram}</a>
-              <a href="#" className="social-btn">{socialIcons.linkedin}</a>
-              <a href="mailto:wie@susl.lk" className="social-btn">{socialIcons.email}</a>
+              <a href="https://www.facebook.com/IEEE.WIE.SUSL" className="social-btn">{socialIcons.facebook}</a>
+              <a href="https://www.instagram.com/ieee_wie_susl?igsh=aGFpc3F6c3FnczVs" className="social-btn">{socialIcons.instagram}</a>
+              <a href="https://www.linkedin.com/company/ieee-wie-student-branch-affinity-group-of-susl/" className="social-btn">{socialIcons.linkedin}</a>
+              <a href="mailto:ieeewieagsusl@gmail.com" className="social-btn">{socialIcons.email}</a>
             </div>
           </div>
 
