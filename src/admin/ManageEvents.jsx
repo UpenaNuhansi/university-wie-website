@@ -130,7 +130,7 @@ export default function ManageEvents() {
                 <div className="h-1.5 w-8 rounded-full bg-teal-500 opacity-30" />
               </div>
               <p className="mt-4 text-3xl font-bold tracking-tight text-teal-700">
-                {events.filter((e) => e.date && new Date(e.date) >= new Date()).length}
+                {events.filter((e) => (e.date ? new Date(e.date) >= new Date() : (e.comingSoon || e.image))).length}
               </p>
               <p className="mt-1 text-xs font-medium text-gray-400">Upcoming</p>
             </div>
@@ -210,7 +210,14 @@ export default function ManageEvents() {
                             );
                           })()
                         ) : (
-                          <span className="text-xs text-gray-300">No date</span>
+                          (event.comingSoon || event.image) ? (
+                            <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold bg-pink-50 text-pink-600">
+                              <span className="h-1.5 w-1.5 rounded-full bg-pink-400" />
+                              COMING SOON
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-300">No date</span>
+                          )
                         )}
                       </div>
 
@@ -237,7 +244,7 @@ export default function ManageEvents() {
                       </div>
 
                       {/* Actions */}
-                      <div className="col-span-1 flex justify-end gap-1">
+                      <div className="col-span-2 flex justify-end gap-1">
                         <Link
                           to={`/admin/events/${event.id}/edit`}
                           className="inline-flex items-center gap-1 rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1.5 text-[11px] font-semibold text-blue-500 transition-all hover:border-blue-200 hover:bg-blue-100 hover:text-blue-700"

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, MapPin, Clock, Calendar, Play } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Calendar, Play, ChevronLeft, ChevronRight } from "lucide-react";
 import { getEventById } from "../services/eventService";
 import Loader from "../components/Loader";
 
@@ -100,6 +100,9 @@ export default function EventDetails() {
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState(null);
   const [heroReady, setHeroReady] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [contentRef, contentVisible] = useReveal(0.1);
   const [relatedRef, relatedVisible] = useReveal(0.1);
 
@@ -109,6 +112,47 @@ export default function EventDetails() {
     const t = setTimeout(() => setHeroReady(true), 60);
     return () => clearTimeout(t);
   }, [eventId]);
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [eventId]);
+
+  const eventImages = Array.isArray(event?.images) && event.images.length
+    ? event.images
+    : event?.image
+      ? [event.image]
+      : [];
+
+  useEffect(() => {
+    if (!heroReady) return undefined;
+    if (eventImages.length <= 1 || carouselPaused) return undefined;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((current) => (current + 1) % eventImages.length);
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [carouselPaused, eventImages.length, eventId]);
+
+  const goToImage = (index) => {
+    if (!eventImages.length) return;
+    setCurrentImageIndex((index + eventImages.length) % eventImages.length);
+  };
+
+  const showPreviousImage = () => goToImage(currentImageIndex - 1);
+  const showNextImage = () => goToImage(currentImageIndex + 1);
+
+  // keyboard handling for lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowLeft') showPreviousImage();
+      if (e.key === 'ArrowRight') showNextImage();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxOpen, currentImageIndex]);
 
   const fetchEventDetails = async () => {
     try {
@@ -153,6 +197,7 @@ export default function EventDetails() {
             <ArrowLeft size={16} /> Back to Events
           </button>
         </div>
+
       </div>
     );
   }
@@ -166,11 +211,36 @@ export default function EventDetails() {
     return d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   };
 
-  const formatTime = (date) => {
-    if (!date) return "";
-    const d = date instanceof Date ? date : new Date(date);
-    if (isNaN(d)) return "Invalid Time";
+  const formatTimeValue = (value) => {
+    if (!value) return "";
+
+    if (typeof value === "string" && /^\d{2}:\d{2}$/.test(value)) {
+      const [hours, minutes] = value.split(":").map(Number);
+      const d = new Date();
+      d.setHours(hours, minutes, 0, 0);
+      return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+    }
+
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+  };
+
+  const getEventTimeText = () => {
+    if (event.startTime && event.endTime) {
+      return `${formatTimeValue(event.startTime)} - ${formatTimeValue(event.endTime)}`;
+    }
+
+    if (event.startTime) {
+      return formatTimeValue(event.startTime);
+    }
+
+    if (event.time) {
+      return event.time;
+    }
+
+    const fallback = formatTimeValue(event.date);
+    return fallback || "Time TBA";
   };
 
   const dateObj   = event.date ? (event.date instanceof Date ? event.date : new Date(event.date)) : null;
@@ -181,7 +251,7 @@ export default function EventDetails() {
 
   const infoCards = [
     { icon: <Calendar size={20} />, label: "Date",     val: formatDate(event.date), delay: "0.12s", bg: "rgba(147,51,234,0.06)" },
-    { icon: <Clock    size={20} />, label: "Time",     val: formatTime(event.date), delay: "0.22s", bg: "rgba(219,39,119,0.05)" },
+    { icon: <Clock    size={20} />, label: "Time",     val: getEventTimeText(), delay: "0.22s", bg: "rgba(219,39,119,0.05)" },
     { icon: <MapPin   size={20} />, label: "Location", val: event.location,         delay: "0.32s", bg: "rgba(147,51,234,0.06)" },
   ];
 
@@ -238,7 +308,8 @@ export default function EventDetails() {
         .edet-hero {
           position: relative;
           width: 100%;
-          height: clamp(300px, 48vw, 520px);
+          /* reduced hero height for more consistent margins */
+          height: clamp(220px, 36vw, 420px);
           overflow: hidden;
           background: linear-gradient(135deg, #ede0f5 0%, var(--bg-base) 100%);
         }
@@ -252,6 +323,188 @@ export default function EventDetails() {
           will-change: transform, opacity;
         }
 
+        .edet-carousel-shell {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        .edet-carousel-track {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
+          position: relative;
+          z-index: 1;
+        }
+
+        .edet-carousel-slide {
+          min-width: 100%;
+          height: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .edet-carousel-media {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          animation: heroScale 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          will-change: transform, opacity;
+        }
+
+        .edet-carousel-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 44px;
+          height: 44px;
+          border: none;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.88);
+          color: var(--purple-900);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 10px 28px rgba(45,10,78,0.18);
+          transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+          z-index: 2;
+        }
+
+        .edet-carousel-nav:hover {
+          transform: translateY(-50%) scale(1.06);
+          background: rgba(255,255,255,1);
+          box-shadow: 0 12px 34px rgba(45,10,78,0.24);
+        }
+
+        .edet-carousel-nav.prev { left: clamp(16px, 3vw, 32px); }
+        .edet-carousel-nav.next { right: clamp(16px, 3vw, 32px); }
+
+        .edet-carousel-indicators {
+          position: absolute;
+          left: 50%;
+          bottom: 20px;
+          transform: translateX(-50%);
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 10px;
+          border-radius: 999px;
+          background: rgba(45,10,78,0.24);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          z-index: 2;
+        }
+
+        .edet-carousel-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 999px;
+          border: none;
+          background: rgba(255,255,255,0.52);
+          cursor: pointer;
+          padding: 0;
+          transition: transform 0.22s ease, background 0.22s ease, width 0.22s ease;
+        }
+
+        .edet-carousel-dot.active {
+          width: 26px;
+          background: #fff;
+        }
+
+        .edet-carousel-counter {
+          position: absolute;
+          left: 20px;
+          top: 20px;
+          padding: 0.45rem 0.8rem;
+          border-radius: 999px;
+          background: rgba(45,10,78,0.70);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          color: #fff;
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          z-index: 2;
+        }
+
+        /* Lightbox styles */
+        .edet-lightbox {
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.85);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1200;
+        }
+
+        .edet-lightbox-track {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          transition: transform 0.45s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        .edet-lightbox-slide {
+          min-width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+        }
+
+        .edet-lightbox-slide img {
+          max-width: 92%;
+          max-height: 86vh;
+          object-fit: contain;
+          border-radius: 6px;
+          box-shadow: 0 14px 50px rgba(0,0,0,0.6);
+        }
+
+        .edet-lightbox-nav {
+          position: fixed;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 56px;
+          height: 56px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.06);
+          color: #fff;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 1220;
+          backdrop-filter: blur(6px);
+        }
+
+        .edet-lightbox-nav.prev { left: 20px; }
+        .edet-lightbox-nav.next { right: 20px; }
+
+        .edet-lightbox-close {
+          position: fixed;
+          top: 18px;
+          right: 18px;
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          color: #fff;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          cursor: pointer;
+          z-index: 1220;
+        }
+
         .edet-hero-overlay {
           position: absolute;
           inset: 0;
@@ -262,6 +515,8 @@ export default function EventDetails() {
             rgba(45,10,78,0.55) 100%
           );
           animation: fadeIn 0.8s ease 0.2s both;
+          pointer-events: none;
+          z-index: 1;
         }
 
         .edet-hero-placeholder {
@@ -284,7 +539,8 @@ export default function EventDetails() {
           bottom: 0;
           left: 0;
           right: 0;
-          padding: clamp(24px, 4vw, 48px) clamp(24px, 6vw, 80px);
+          z-index: 2;
+          padding: clamp(16px, 3vw, 40px) clamp(16px, 4vw, 48px);
           animation: fadeSlideUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
         }
 
@@ -315,14 +571,16 @@ export default function EventDetails() {
           letter-spacing: 0.12em;
           box-shadow: 0 4px 16px rgba(45,10,78,0.3);
           animation: badgePop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s both;
+          z-index: 2;
           text-transform: uppercase;
         }
 
         /* ── Content ── */
         .edet-content {
-          max-width: 840px;
+          /* narrower content for more balanced margins */
+          max-width: 760px;
           margin: 0 auto;
-          padding: clamp(36px, 5vw, 72px) clamp(20px, 6vw, 72px);
+          padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px);
         }
 
         /* Title (shown outside hero when no image) */
@@ -611,17 +869,72 @@ export default function EventDetails() {
 
         {/* ── Hero ── */}
         <div className="edet-hero">
-          {event.image ? (
+          {eventImages.length ? (
             <>
-              <img
-                src={event.image}
-                alt={event.title}
-                className="edet-hero-img"
-              />
-              <div className="edet-hero-overlay" />
-              {/* Title overlaid on hero image */}
-              <div className="edet-hero-title-wrap">
-                <h1 className="edet-hero-title">{event.title}</h1>
+              <div
+                className="edet-carousel-shell"
+                tabIndex={0}
+                onFocus={() => setCarouselPaused(true)}
+                onBlur={() => setCarouselPaused(false)}
+                onMouseEnter={() => setCarouselPaused(true)}
+                onMouseLeave={() => setCarouselPaused(false)}
+              >
+                <div
+                  className="edet-carousel-track"
+                  style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+                >
+                  {eventImages.map((image, index) => (
+                    <div className="edet-carousel-slide" key={`${event.id || 'event'}-${index}`}>
+                      <img
+                        src={image}
+                        alt={`${event.title} ${index + 1}`}
+                        className="edet-carousel-media"
+                        onClick={() => { setCurrentImageIndex(index); setLightboxOpen(true); }}
+                        style={{ cursor: 'zoom-in' }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="edet-hero-overlay" />
+                {eventImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="edet-carousel-nav prev"
+                      onClick={showPreviousImage}
+                      aria-label="Previous event image"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      className="edet-carousel-nav next"
+                      onClick={showNextImage}
+                      aria-label="Next event image"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                    <div className="edet-carousel-indicators" aria-label="Event image carousel">
+                      {eventImages.map((_, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`edet-carousel-dot ${index === currentImageIndex ? 'active' : ''}`}
+                          onClick={() => goToImage(index)}
+                          aria-label={`Show image ${index + 1}`}
+                          aria-pressed={index === currentImageIndex}
+                        />
+                      ))}
+                    </div>
+                    <div className="edet-carousel-counter">
+                      {currentImageIndex + 1} / {eventImages.length}
+                    </div>
+                  </>
+                )}
+                <div className="edet-hero-title-wrap">
+                  <h1 className="edet-hero-title">{event.title}</h1>
+                </div>
+                {isPast && <span className="edet-past-badge">Past Event</span>}
               </div>
             </>
           ) : (
@@ -640,15 +953,13 @@ export default function EventDetails() {
               </svg>
             </div>
           )}
-
-          {isPast && <span className="edet-past-badge">Past Event</span>}
         </div>
 
         {/* ── Main Content ── */}
         <div className="edet-content" ref={contentRef}>
 
           {/* Title only when no hero image */}
-          {!event.image && (
+          {!eventImages.length && (
             <h1
               className={`edet-content-title f-up ${contentVisible ? "vis" : ""}`}
               style={{ transitionDelay: "0.04s" }}
@@ -695,7 +1006,9 @@ export default function EventDetails() {
             className={`edet-cta f-up ${contentVisible ? "vis" : ""}`}
             style={{ transitionDelay: "0.52s" }}
           >
-            {!isPast && registrationEnabled && registrationLink ? (
+            {event.comingSoon ? (
+              <button className="edet-btn-save" disabled style={{ opacity: 0.95 }}>Coming Soon</button>
+            ) : (!isPast && registrationEnabled && registrationLink) ? (
               <a
                 href={registrationLink}
                 target="_blank"
@@ -705,8 +1018,39 @@ export default function EventDetails() {
               >
                 {registrationLabel} →
               </a>
-            ) : !isPast ? (
+            ) : (!isPast && registrationEnabled && !registrationLink) ? (
               <button className="edet-btn-save">Registration Closed</button>
+            ) : (!isPast && !(registrationEnabled)) ? (
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                {event.youtubeLink && (
+                  <a
+                    href={event.youtubeLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="edet-btn-recap"
+                    style={{ background: "linear-gradient(135deg, #ff0000 0%, #cc0000 100%)" }}
+                  >
+                    <Play size={16} fill="currentColor" /> Watch on YouTube
+                  </a>
+                )}
+                {event.facebookLink && (
+                  <a
+                    href={event.facebookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="edet-btn-recap"
+                    style={{ background: "linear-gradient(135deg, #1877f2 0%, #0a66c2 100%)" }}
+                  >
+                    <svg style={{ width: "16px", height: "16px", fill: "currentColor" }} viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    Watch on Facebook
+                  </a>
+                )}
+                {!event.youtubeLink && !event.facebookLink && (
+                  <div style={{ color: 'var(--gray-600)', fontWeight: 600 }}>No registration — follow our social channels for updates.</div>
+                )}
+              </div>
             ) : (
               <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
                 {event.youtubeLink && (
@@ -753,6 +1097,64 @@ export default function EventDetails() {
             </p>
           </div>
         </div>
+
+        {lightboxOpen && (
+          <div
+            className="edet-lightbox"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setLightboxOpen(false);
+            }}
+          >
+            <div
+              className="edet-lightbox-track"
+              style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+            >
+              {eventImages.map((img, idx) => (
+                <div className="edet-lightbox-slide" key={`lb-${idx}`}>
+                  <img src={img} alt={`${event.title} ${idx + 1}`} />
+                </div>
+              ))}
+            </div>
+
+            {eventImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  className="edet-lightbox-nav prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showPreviousImage();
+                  }}
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  type="button"
+                  className="edet-lightbox-nav next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showNextImage();
+                  }}
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              className="edet-lightbox-close"
+              onClick={() => setLightboxOpen(false)}
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
       </div>
     </>

@@ -1,5 +1,5 @@
 export default function GalleryCard({ item }) {
-  const { title, image, category, createdAt } = item;
+  const { title, image, category, createdAt, description } = item;
 
   const formattedDate = createdAt
     ? new Date(
@@ -41,6 +41,17 @@ export default function GalleryCard({ item }) {
         <h3 className="mt-2 text-base font-semibold leading-snug text-purple-900 group-hover:text-pink-600 transition-colors">
           {title}
         </h3>
+
+        {description && (
+          <p className="mt-2 text-sm leading-relaxed text-gray-600" style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {description}
+          </p>
+        )}
 
         {formattedDate && (
           <p className="mt-1.5 flex items-center gap-1 text-xs text-gray-400">

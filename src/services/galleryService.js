@@ -6,6 +6,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  updateDoc,
   query,
   orderBy,
 } from 'firebase/firestore';
@@ -86,6 +87,7 @@ export const addGalleryItem = async (item) => {
   try {
     const docRef = await addDoc(collection(db, GALLERY_COLLECTION), {
       title:     item.title,
+      description: item.description || '',
       image:     item.image,
       category:  item.category,
       createdAt: new Date(),
@@ -106,6 +108,22 @@ export const deleteGalleryItem = async (itemId) => {
     return true;
   } catch (error) {
     console.error('Error deleting gallery item:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update fields for an existing gallery item.
+ */
+export const updateGalleryItem = async (itemId, data) => {
+  try {
+    await updateDoc(doc(db, GALLERY_COLLECTION, itemId), {
+      ...data,
+      updatedAt: new Date(),
+    });
+    return true;
+  } catch (error) {
+    console.error('Error updating gallery item:', error);
     throw error;
   }
 };

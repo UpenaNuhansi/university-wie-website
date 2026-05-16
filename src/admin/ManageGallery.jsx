@@ -3,13 +3,14 @@ import {
   getGalleryItems,
   deleteGalleryItem,
   addGalleryItem,
+  updateGalleryItem,
   compressImage,
 } from '../services/galleryService';
 import Loader from '../components/Loader';
 import { useNotification } from '../context/NotificationContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 
-const FIXED_CATEGORIES = ['WIE Day', 'Hackathons', 'Summits', 'Other'];
+const FIXED_CATEGORIES = ['Aurelia', 'PerlHack', 'Hope', 'Other'];
 
 export default function ManageGallery() {
   const [gallery, setGallery]     = useState([]);
@@ -22,11 +23,20 @@ export default function ManageGallery() {
   const [preview, setPreview]     = useState(null);   // local object URL for preview
   const [imageFile, setImageFile] = useState(null);   // raw File object
   const [confirmImageId, setConfirmImageId] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: '',
-    category: 'WIE Day',
+    category: 'Aurelia',
+    description: '',
+    customCategory: '',
+  });
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    category: 'Aurelia',
+    description: '',
     customCategory: '',
   });
   const { showToast } = useNotification();
@@ -96,12 +106,13 @@ export default function ManageGallery() {
       setProgress(98);
       await addGalleryItem({
         title:    formData.title.trim(),
+        description: formData.description.trim(),
         image:    base64,
         category: resolvedCategory,
       });
 
       setProgress(100);
-      setFormData({ title: '', category: 'WIE Day', customCategory: '' });
+      setFormData({ title: '', category: 'Aurelia', description: '', customCategory: '' });
       clearImage();
       setShowForm(false);
       await fetchGallery();
@@ -143,8 +154,67 @@ export default function ManageGallery() {
 
   const handleCloseForm = () => {
     setShowForm(false);
-    setFormData({ title: '', category: 'WIE Day', customCategory: '' });
+    setFormData({ title: '', category: 'Aurelia', description: '', customCategory: '' });
     clearImage();
+  };
+
+  const openEditModal = (item) => {
+    const isFixedCategory = FIXED_CATEGORIES.includes(item.category);
+    setEditFormData({
+      title: item.title || '',
+      category: isFixedCategory ? item.category : 'Other',
+      customCategory: isFixedCategory ? '' : (item.category || ''),
+      description: item.description || '',
+    });
+    setEditingItem(item);
+  };
+
+  const closeEditModal = () => {
+    if (savingEdit) return;
+    setEditingItem(null);
+    setEditFormData({ title: '', category: 'Aurelia', description: '', customCategory: '' });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    if (!editFormData.title.trim()) {
+      showToast('Please enter a title', 'error');
+      return;
+    }
+
+    const resolvedCategory =
+      editFormData.category === 'Other'
+        ? editFormData.customCategory.trim() || 'Other'
+        : editFormData.category;
+
+    try {
+      setSavingEdit(true);
+      await updateGalleryItem(editingItem.id, {
+        title: editFormData.title.trim(),
+        category: resolvedCategory,
+        description: editFormData.description.trim(),
+      });
+
+      setGallery((prev) => prev.map((item) => {
+        if (item.id !== editingItem.id) return item;
+        return {
+          ...item,
+          title: editFormData.title.trim(),
+          category: resolvedCategory,
+          description: editFormData.description.trim(),
+        };
+      }));
+
+      showToast('Image details updated', 'success');
+      closeEditModal();
+    } catch (error) {
+      console.error(error);
+      showToast('Failed to update image details', 'error');
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   if (loading) return <Loader />;
@@ -235,6 +305,19 @@ export default function ManageGallery() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold uppercase tracking-widest text-gray-300">Small Description</label>
+              <textarea
+                rows={3}
+                maxLength={180}
+                placeholder="Write a short caption for this image..."
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-300 transition focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-100"
+              />
+              <p className="text-[11px] text-gray-400">{formData.description.length}/180</p>
             </div>
 
             {/* Custom category */}
@@ -480,40 +563,142 @@ export default function ManageGallery() {
                             })
                           : 'No date'}
                       </p>
+                      {item.description && (
+                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-gray-500">
+                          {item.description}
+                        </p>
+                      )}
                     </div>
                     <span className="inline-flex flex-shrink-0 items-center rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-600">
                       {item.category ?? 'Uncategorized'}
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => requestDelete(item.id)}
-                    disabled={deleting === item.id}
-                    className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-100 bg-red-50 py-2 text-[11px] font-semibold text-red-500 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {deleting === item.id ? (
-                      <>
-                        <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                        </svg>
-                        Deleting…
-                      </>
-                    ) : (
-                      <>
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Delete Image
-                      </>
-                    )}
-                  </button>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => openEditModal(item)}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-purple-100 bg-purple-50 py-2 text-[11px] font-semibold text-purple-600 transition-all hover:border-purple-200 hover:bg-purple-100 hover:text-purple-700"
+                    >
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => requestDelete(item.id)}
+                      disabled={deleting === item.id}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-100 bg-red-50 py-2 text-[11px] font-semibold text-red-500 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {deleting === item.id ? (
+                        <>
+                          <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                          Deleting…
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </>
+      )}
+
+      {editingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Edit Image Details</h2>
+                <p className="text-xs text-gray-400">Update title, category, and description</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeEditModal}
+                className="rounded-lg border border-gray-200 px-2 py-1 text-xs font-semibold text-gray-500 hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+
+            <form className="space-y-4" onSubmit={handleEditSubmit}>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-gray-300">Title</label>
+                <input
+                  type="text"
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 transition focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-100"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-gray-300">Category</label>
+                <select
+                  value={editFormData.category}
+                  onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value, customCategory: '' })}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 transition focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-100"
+                >
+                  {FIXED_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {editFormData.category === 'Other' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-gray-300">Custom Category</label>
+                  <input
+                    type="text"
+                    value={editFormData.customCategory}
+                    onChange={(e) => setEditFormData({ ...editFormData, customCategory: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 transition focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-100"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-gray-300">Small Description</label>
+                <textarea
+                  rows={3}
+                  maxLength={180}
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-800 transition focus:border-purple-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-100"
+                />
+                <p className="text-[11px] text-gray-400">{editFormData.description.length}/180</p>
+              </div>
+
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savingEdit ? 'Saving…' : 'Save Changes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <ConfirmDialog
