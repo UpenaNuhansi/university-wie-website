@@ -110,9 +110,11 @@ const ExecutiveCommittee = () => {
     return b.localeCompare(a);
   }).map(year => {
     const items = members.filter(m => m.year === year);
+    const statusFromField = items.find(i => i.status)?.status || '';
+    const hasCurrent = items.some(i => i.isCurrent);
     return {
       year,
-      status: items.find(i => i.status)?.status || '',
+      status: statusFromField || (hasCurrent ? 'Current Excom' : ''),
       items
     };
   });

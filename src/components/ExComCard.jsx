@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ExComCard = ({ name, position, image }) => {
+const ExComCard = ({ name, position, image, isTop, isCurrent }) => {
   const [imgError, setImgError] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -44,10 +44,20 @@ const ExComCard = ({ name, position, image }) => {
         <h3 className="font-serif text-xl md:text-2xl font-bold text-primary group-hover:text-accent transition-colors duration-300 leading-tight">
           {name}
         </h3>
-        <div className="inline-block px-4 py-1.5 rounded-full bg-purple-50 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-          <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest">
-            {position}
-          </p>
+        <div className="flex items-center justify-center gap-2">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-purple-50 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+            <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest">
+              {position}
+            </p>
+          </div>
+          {/* <div className="flex items-center gap-2">
+            {isTop && (
+              <span className="text-[10px] bg-purple-50 text-purple-500 px-2 py-0.5 rounded-full inline-block uppercase font-bold">Top Position</span>
+            )}
+            {isCurrent && (
+              <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full inline-block uppercase font-bold">Current</span>
+            )}
+          </div> */}
         </div>
       </div>
 
