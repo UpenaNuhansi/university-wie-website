@@ -125,11 +125,23 @@ function useReveal(threshold = 0.12) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
+    const node = ref.current;
+
+    if (!node) {
+      setVisible(true);
+      return;
+    }
+
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      setVisible(true);
+      return;
+    }
+
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
       { threshold }
     );
-    if (ref.current) obs.observe(ref.current);
+    obs.observe(node);
     return () => obs.disconnect();
   }, [threshold]);
   return [ref, visible];
@@ -210,9 +222,10 @@ function SectionHeading({ children, visible }) {
 function UpcomingCard({ event, index, onClick }) {
   const [ref, visible] = useReveal();
   const [hovered, setHovered] = useState(false);
-  const eventDate = new Date(event.date);
-  const day   = eventDate.getDate();
-  const month = eventDate.toLocaleDateString("en-US", { month: "short" });
+  const isComingSoon = !event.date && (event.comingSoon || event.image);
+  const eventDate = event.date ? new Date(event.date) : null;
+  const day = eventDate ? eventDate.getDate() : null;
+  const month = eventDate ? eventDate.toLocaleDateString("en-US", { month: "short" }) : null;
   const registrationLink = event.registrationLink || event.registerLink;
   const registrationLabel = event.registrationLabel || (event.registrationType === "google" ? "Open Google Form" : "Register Now");
   const eventTimeText = getEventTimeText(event);
@@ -271,17 +284,23 @@ function UpcomingCard({ event, index, onClick }) {
         {/* Date badge */}
         <div style={{
           position: "absolute", top: "16px", left: "16px",
-          background: "var(--purple-800)",
+          background: isComingSoon ? "linear-gradient(90deg, var(--pink-600), #c026d3)" : "var(--purple-800)",
           color: "var(--white)",
           borderRadius: "12px",
-          padding: "10px 14px",
+          padding: isComingSoon ? "8px 12px" : "10px 14px",
           textAlign: "center",
           boxShadow: "0 4px 20px rgba(107,33,168,0.4)",
           animation: visible ? `floatDate 3.5s ease-in-out ${index * 200 + 600}ms infinite` : "none",
-          minWidth: "54px",
+          minWidth: "64px",
         }}>
-          <div style={{ fontSize: "26px", fontWeight: "700", lineHeight: 1, fontFamily: "'Cormorant Garamond', serif" }}>{day}</div>
-          <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", marginTop: "2px", opacity: 0.9 }}>{month.toUpperCase()}</div>
+          {isComingSoon ? (
+            <div style={{ fontSize: "12px", fontWeight: "700", lineHeight: 1, fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.08em" }}>COMING SOON</div>
+          ) : (
+            <>
+              <div style={{ fontSize: "26px", fontWeight: "700", lineHeight: 1, fontFamily: "'Cormorant Garamond', serif" }}>{day}</div>
+              <div style={{ fontSize: "11px", fontWeight: "600", letterSpacing: "0.08em", marginTop: "2px", opacity: 0.9 }}>{month.toUpperCase()}</div>
+            </>
+          )}
         </div>
 
         {/* Type badges */}
@@ -568,13 +587,25 @@ export default function Events() {
 
   const groupEventsByWeek = (eventsList) => {
     const weeks = {};
+    const comingSoon = [];
+
     eventsList.forEach(event => {
+      if (!event.date) {
+        // treat events without a date as "coming soon" (poster)
+        comingSoon.push(event);
+        return;
+      }
+
       const weekStart = getWeekStart(event.date);
       const weekKey = weekStart.toISOString().split('T')[0];
       if (!weeks[weekKey]) weeks[weekKey] = { start: weekStart, events: [] };
       weeks[weekKey].events.push(event);
     });
-    return Object.values(weeks).sort((a, b) => a.start - b.start);
+
+    const sorted = Object.values(weeks).sort((a, b) => a.start - b.start);
+    // put coming soon bucket first so it's shown as the top 'week'
+    if (comingSoon.length) sorted.unshift({ start: null, events: comingSoon });
+    return sorted;
   };
 
   useEffect(() => {
@@ -601,8 +632,12 @@ export default function Events() {
 
   if (loading) return <Loader />;
 
-  const upcoming = events.filter(e => new Date(e.date) > new Date());
-  const past     = events.filter(e => new Date(e.date) <= new Date());
+  const now = new Date();
+  // Treat events with no date but with an image/poster (or explicit comingSoon flag) as upcoming
+  const isComingSoonEvent = (e) => !e.date && (e.comingSoon || e.image);
+
+  const upcoming = events.filter(e => (e.date ? new Date(e.date) > now : isComingSoonEvent(e)));
+  const past     = events.filter(e => e.date && new Date(e.date) <= now);
   const upcomingWeeks = groupEventsByWeek(upcoming);
   const currentWeekEvents = upcomingWeeks[currentWeekIndex]?.events || [];
 
@@ -779,9 +814,9 @@ export default function Events() {
                 margin: "8px 0 0",
                 fontWeight: "300",
               }}>
-                Week of {upcomingWeeks[currentWeekIndex].start.toLocaleDateString("en-US", {
-                  month: "short", day: "numeric", year: "numeric"
-                })}
+                {upcomingWeeks[currentWeekIndex].start
+                  ? `Week of ${upcomingWeeks[currentWeekIndex].start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                  : 'Coming Soon'}
               </p>
             )}
           </div>
@@ -1044,7 +1079,7 @@ export default function Events() {
               e.currentTarget.style.boxShadow = "0 6px 24px rgba(219,39,119,0.35)";
             }}
           >
-            Propose an Event
+            <a href="/contact">Propose an Event</a>
             {/* lightbulb icon */}
             <span style={{ fontSize: "18px", lineHeight: 1 }}>💡</span>
           </button>

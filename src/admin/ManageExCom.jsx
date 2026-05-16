@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getExComMembers, deleteExComMember, addExComMember, updateExComMember } from '../services/excomService';
+import { compressImage } from '../services/galleryService';
 import Loader from '../components/Loader';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useNotification } from '../context/NotificationContext';
@@ -12,13 +13,19 @@ export default function ManageExCom() {
   const [showModal, setShowModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const fileInputRef = useRef(null);
   const { showToast } = useNotification();
 
   // Form State
   const [formData, setFormData] = useState({
     name: '',
     position: '',
-    year: '2025/2026',
+    year: '',
     image: '',
     isTop: false,
     type: 'card' // card or table
@@ -27,6 +34,34 @@ export default function ManageExCom() {
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  const applyFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    setImageFile(file);
+    if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+    setPreview(URL.createObjectURL(file));
+  };
+
+  const handleFileChange = (e) => applyFile(e.target.files[0]);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    applyFile(e.dataTransfer.files[0]);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const fetchMembers = async () => {
     try {
@@ -53,39 +88,80 @@ export default function ManageExCom() {
       setFormData({
         name: member.name || '',
         position: member.position || '',
-        year: member.year || '2025/2026',
+        year: member.year || '',
         image: member.image || '',
         isTop: member.isTop || false,
         type: member.type || 'card'
       });
+      setPreview(member.image || null);
+      setImageFile(null);
     } else {
       setEditingMember(null);
       setFormData({
         name: '',
         position: '',
-        year: '2025/2026',
+        year: '',
         image: '',
         isTop: false,
         type: 'card'
       });
+      clearImage();
     }
     setShowModal(true);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim()) {
+      showToast('Name is required', 'error');
+      return;
+    }
+    if (!formData.position.trim()) {
+      showToast('Position is required', 'error');
+      return;
+    }
+    if (!formData.year.trim()) {
+      showToast('Year is required', 'error');
+      return;
+    }
+
     try {
+      setUploading(true);
+      setProgress(0);
+      
+      let imageData = formData.image;
+      
+      // Only compress if a new image file was selected
+      if (imageFile) {
+        imageData = await compressImage(imageFile, (fileProgress) => {
+          setProgress(fileProgress);
+        });
+      }
+      
+      setProgress(98);
+      
+      const submitData = {
+        ...formData,
+        image: imageData
+      };
+
       if (editingMember) {
-        await updateExComMember(editingMember.id, formData);
+        await updateExComMember(editingMember.id, submitData);
         showToast('Member updated successfully', 'success');
       } else {
-        await addExComMember(formData);
+        await addExComMember(submitData);
         showToast('Member added successfully', 'success');
       }
+      
+      setProgress(100);
       setShowModal(false);
       fetchMembers();
     } catch (error) {
+      console.error('Error saving member:', error);
       showToast('Failed to save member', 'error');
+    } finally {
+      setUploading(false);
+      setProgress(0);
     }
   };
 
@@ -209,27 +285,80 @@ export default function ManageExCom() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Year</label>
-                  <select
+                  <input
+                    required
+                    type="text"
                     value={formData.year}
                     onChange={e => setFormData({...formData, year: e.target.value})}
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 px-4 text-sm focus:border-purple-500 focus:bg-white outline-none transition-all"
-                  >
-                    <option value="2025/2026">2025/2026</option>
-                    <option value="2024/2025">2024/2025</option>
-                    <option value="2023/2024">2023/2024</option>
-                    <option value="2022/2023">2022/2023</option>
-                  </select>
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Image URL</label>
-                  <input
-                    type="text"
-                    value={formData.image}
-                    onChange={e => setFormData({...formData, image: e.target.value})}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 px-4 text-sm focus:border-purple-500 focus:bg-white outline-none transition-all"
-                    placeholder="e.g. https://randomuser.me/api/portraits/women/1.jpg"
+                    placeholder="e.g. 2025/2026"
                   />
                 </div>
+                
+                {/* Image Upload */}
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Profile Image</label>
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+                      dragOver ? 'border-purple-400 bg-purple-50' : 'border-gray-200 bg-gray-50'
+                    }`}
+                  >
+                    {preview ? (
+                      <div className="space-y-3">
+                        <img
+                          src={preview}
+                          alt="Preview"
+                          className="w-24 h-24 rounded-lg object-cover mx-auto border border-gray-200"
+                        />
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="text-xs font-semibold text-purple-600 hover:text-purple-700 underline"
+                          >
+                            Change Image
+                          </button>
+                          <span className="text-xs text-gray-400 mx-2">or</span>
+                          <button
+                            type="button"
+                            onClick={clearImage}
+                            className="text-xs font-semibold text-red-600 hover:text-red-700 underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="cursor-pointer"
+                      >
+                        <Icon icon="mdi:cloud-upload-outline" className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                        <p className="text-sm font-medium text-gray-600">Drop image here or click to browse</p>
+                        <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                      </div>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                  {progress > 0 && progress < 100 && (
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -245,16 +374,20 @@ export default function ManageExCom() {
               <div className="pt-4 flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    clearImage();
+                  }}
                   className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-xl bg-purple-600 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all"
+                  disabled={uploading}
+                  className="flex-1 rounded-xl bg-purple-600 py-3 text-sm font-semibold text-white shadow-lg shadow-purple-100 hover:bg-purple-700 transition-all disabled:opacity-50"
                 >
-                  {editingMember ? 'Update Member' : 'Add Member'}
+                  {uploading ? `Uploading... ${progress}%` : (editingMember ? 'Update Member' : 'Add Member')}
                 </button>
               </div>
             </form>

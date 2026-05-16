@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getEvents } from '../services/eventService';
+import { getEvents, subscribeToEvents } from '../services/eventService';
 
 export default function useFetchEvents() {
   const [events, setEvents] = useState([]);
@@ -7,20 +7,33 @@ export default function useFetchEvents() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    let unsub;
+    const start = async () => {
       try {
+        // attempt to fetch initial snapshot (fallback)
         const data = await getEvents();
         setEvents(data);
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Failed to load events. Please try again later.';
+        const message = err instanceof Error ? err.message : 'Failed to load events. Please try again later.';
         setError(message);
       } finally {
         setLoading(false);
       }
+
+      // subscribe to realtime updates
+      unsub = subscribeToEvents((items) => {
+        setEvents(items);
+      }, (err) => {
+        const message = err instanceof Error ? err.message : 'Failed to subscribe to events.';
+        setError(message);
+      });
     };
 
-    fetchEvents();
+    start();
+
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
   }, []);
 
   return { events, loading, error };

@@ -9,6 +9,7 @@ import {
   orderBy,
   getDoc,
   Timestamp,
+  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 
@@ -34,6 +35,7 @@ const convertEventData = (data) => {
   const converted = { ...data };
 
   if (data.date?.toDate) converted.date = data.date.toDate();
+  if (data.createdAt?.toDate) converted.createdAt = data.createdAt.toDate();
   if (converted.registrationEnabled === undefined) {
     converted.registrationEnabled = Boolean(data.allowRegister || data.registrationLink || data.registerLink);
   }
@@ -59,13 +61,38 @@ const convertEventData = (data) => {
 };
 
 export const getEvents = async () => {
-  const q = query(collection(db, EVENTS_COLLECTION), orderBy("date", "desc"));
-  const snap = await getDocs(q);
+  const snap = await getDocs(collection(db, EVENTS_COLLECTION));
+  const items = snap.docs.map((d) => ({ id: d.id, ...convertEventData(d.data()) }));
 
-  return snap.docs.map((d) => ({
-    id: d.id,
-    ...convertEventData(d.data()),
-  }));
+  // Sort client-side: prefer events with a date (newest first), then fall back to createdAt
+  items.sort((a, b) => {
+    const aDate = a.date instanceof Date ? a.date.getTime() : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
+    const bDate = b.date instanceof Date ? b.date.getTime() : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
+    return bDate - aDate;
+  });
+
+  return items;
+};
+
+export const subscribeToEvents = (onChange, onError) => {
+  const col = collection(db, EVENTS_COLLECTION);
+  const unsub = onSnapshot(
+    col,
+    (snap) => {
+      const items = snap.docs.map((d) => ({ id: d.id, ...convertEventData(d.data()) }));
+      items.sort((a, b) => {
+        const aDate = a.date instanceof Date ? a.date.getTime() : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
+        const bDate = b.date instanceof Date ? b.date.getTime() : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
+        return bDate - aDate;
+      });
+      onChange(items);
+    },
+    (err) => {
+      if (onError) onError(err);
+    }
+  );
+
+  return unsub;
 };
 
 export const getEventById = async (id) => {

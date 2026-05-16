@@ -50,8 +50,15 @@ const Home = () => {
   const { events, loading } = useFetchEvents();
 
   /* get upcoming events (next 3) */
-  const upcomingEvents = events
-    .filter(event => new Date(event.date) >= new Date())
+  const now = new Date();
+  const isComingSoonEvent = (event) => !event.date && (event.comingSoon || event.image);
+  const upcomingEvents = [...events]
+    .filter((event) => (event.date ? new Date(event.date) > now : isComingSoonEvent(event)))
+    .sort((a, b) => {
+      const aTime = a.date ? new Date(a.date).getTime() : Number.MAX_SAFE_INTEGER;
+      const bTime = b.date ? new Date(b.date).getTime() : Number.MAX_SAFE_INTEGER;
+      return aTime - bTime;
+    })
     .slice(0, 3);
 
   return (
@@ -424,7 +431,7 @@ const Home = () => {
                 The IEEE WIE Student Branch Affinity Group fosters leadership,
                 mentorship, and networking opportunities.
               </p>
-              <button className="btn-outline">Explore More</button>
+              <button className="btn-outline"><a href="/about">Explore More</a></button>
             </div>
           </div>
         </section>
@@ -449,7 +456,7 @@ const Home = () => {
               {/* BIG CARD - First Event */}
               {!loading && upcomingEvents.length > 0 ? (
                 <div className={`event-big md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d2`}>
-                  <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">{formatDate(upcomingEvents[0].date)}</p>
+                  <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">{upcomingEvents[0].date ? formatDate(upcomingEvents[0].date) : 'Coming Soon'}</p>
                   <h3 className="font-display text-xl sm:text-2xl font-semibold mb-1 leading-snug">
                     {upcomingEvents[0].title}
                   </h3>
@@ -464,7 +471,7 @@ const Home = () => {
               {/* SIDE CARD - Second Event */}
               {!loading && upcomingEvents.length > 1 ? (
                 <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d3`}>
-                  <p className="font-body text-sm text-gray-400 mb-2">{formatDate(upcomingEvents[1].date)}</p>
+                  <p className="font-body text-sm text-gray-400 mb-2">{upcomingEvents[1].date ? formatDate(upcomingEvents[1].date) : 'Coming Soon'}</p>
                   <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
                     {upcomingEvents[1].title}
                   </h3>
@@ -479,7 +486,7 @@ const Home = () => {
               {/* SMALL - Third Event */}
               {!loading && upcomingEvents.length > 2 ? (
                 <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d4`}>
-                  <p className="font-body text-sm text-gray-400 mb-2">{formatDate(upcomingEvents[2].date)}</p>
+                  <p className="font-body text-sm text-gray-400 mb-2">{upcomingEvents[2].date ? formatDate(upcomingEvents[2].date) : 'Coming Soon'}</p>
                   <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
                     {upcomingEvents[2].title}
                   </h3>
@@ -496,7 +503,7 @@ const Home = () => {
                 <h3 className="font-display text-xl font-semibold">
                   Have an idea for an event?
                 </h3>
-                <button className="btn-white"><a href="/contactus">Propose Idea</a></button>
+                <button className="btn-white"><a href="/contact">Propose Idea</a></button>
               </div>
 
             </div>

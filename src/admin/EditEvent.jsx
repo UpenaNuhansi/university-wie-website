@@ -20,6 +20,9 @@ export default function EditEvent() {
     location: '',
     description: '',
     image: '',
+    comingSoon: false,
+    youtubeLink: '',
+    facebookLink: '',
     registrationEnabled: false,
     registrationType: 'google',
     registrationLabel: 'Register Now',
@@ -63,6 +66,9 @@ export default function EditEvent() {
         location: data.location || '',
         description: data.description || '',
         image: data.image || '',
+        comingSoon: data.comingSoon ?? false,
+        youtubeLink: data.youtubeLink || '',
+        facebookLink: data.facebookLink || '',
         registrationEnabled: data.registrationEnabled ?? Boolean(data.allowRegister || data.registrationLink || data.registerLink),
         registrationType: data.registrationType || ((data.registrationLink || data.registerLink || '').includes('docs.google.com') ? 'google' : 'custom'),
         registrationLabel: data.registrationLabel || (((data.registrationLink || data.registerLink || '').includes('docs.google.com')) ? 'Open Google Form' : 'Register Now'),
@@ -131,11 +137,13 @@ export default function EditEvent() {
     e.preventDefault();
     setError('');
     if (!formData.title.trim()) return setError('Event title is required.');
-    if (!formData.date) return setError('Date is required.');
-    if (!formData.startTime || !formData.endTime) return setError('Start time and end time are required.');
-    if (!formData.location.trim()) return setError('Location is required.');
-    if (!formData.description.trim()) return setError('Description is required.');
-    if (!imageItems.length) return setError('At least one event image is required.');
+    if (!formData.comingSoon) {
+      if (!formData.date) return setError('Date is required.');
+      if (!formData.description.trim()) return setError('Description is required.');
+      if (!imageItems.length) return setError('At least one event image is required.');
+    } else {
+      if (!formData.description.trim()) return setError('Description is required for coming soon events.');
+    }
     if (formData.registrationEnabled && !formData.registrationLink.trim()) {
       return setError('Registration link is required when registration is enabled.');
     }
@@ -157,23 +165,30 @@ export default function EditEvent() {
         }
       }
 
-      const [year, month, day] = formData.date.split('-').map(Number);
-      const eventDate = new Date(year, month - 1, day);
-
-      await updateEvent(eventId, {
+      const payload = {
         title: formData.title,
-        date: eventDate,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        location: formData.location,
         description: formData.description,
         image: imageUrls[0] || '',
         images: imageUrls,
+        youtubeLink: formData.youtubeLink.trim() || '',
+        facebookLink: formData.facebookLink.trim() || '',
         registrationEnabled: formData.registrationEnabled,
         registrationType: formData.registrationType,
         registrationLabel: formData.registrationLabel.trim() || (formData.registrationType === 'google' ? 'Open Google Form' : 'Register Now'),
         registrationLink: formData.registrationEnabled ? formData.registrationLink.trim() : '',
-      });
+        comingSoon: Boolean(formData.comingSoon),
+      };
+
+      if (!formData.comingSoon && formData.date) {
+        const [year, month, day] = formData.date.split('-').map(Number);
+        const eventDate = new Date(year, month - 1, day);
+        payload.date = eventDate;
+        if (formData.startTime) payload.startTime = formData.startTime;
+        if (formData.endTime) payload.endTime = formData.endTime;
+        if (formData.location && formData.location.trim()) payload.location = formData.location.trim();
+      }
+
+      await updateEvent(eventId, payload);
       showToast('Event updated successfully!', 'success');
       navigate('/admin/events');
     } catch (err) {
@@ -249,6 +264,20 @@ export default function EditEvent() {
                   placeholder="e.g., Women in Engineering Conference"
                   className={inputClass}
                 />
+              </div>
+
+              {/* Coming Soon toggle */}
+              <div className="flex items-center justify-end">
+                <label className="inline-flex items-center gap-2 text-sm font-medium text-gray-700">
+                  <input
+                    type="checkbox"
+                    name="comingSoon"
+                    checked={formData.comingSoon}
+                    onChange={handleChange}
+                    className="h-4 w-4 rounded border-gray-300 text-pink-600 focus:ring-pink-200"
+                  />
+                  Mark as Coming Soon (no date/time/location)
+                </label>
               </div>
 
               {/* Date + Time + Location row */}
@@ -368,6 +397,36 @@ export default function EditEvent() {
                     </div>
                   </div>
                 )}
+
+              {/* Social Links */}
+              <div className="rounded-2xl border border-gray-100 bg-white p-4">
+                <p className="text-sm font-semibold text-gray-700">Event Links (optional)</p>
+                <p className="text-xs text-gray-400 mb-3">Add social links for this event — shown when there is no registration.</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>YouTube Link</label>
+                    <input
+                      type="url"
+                      name="youtubeLink"
+                      value={formData.youtubeLink}
+                      onChange={handleChange}
+                      placeholder="https://youtube.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Facebook Link</label>
+                    <input
+                      type="url"
+                      name="facebookLink"
+                      value={formData.facebookLink}
+                      onChange={handleChange}
+                      placeholder="https://facebook.com/..."
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              </div>
               </div>
 
               {/* Image Upload */}
