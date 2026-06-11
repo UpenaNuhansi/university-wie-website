@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import heroBg from "../assets/volunteer/heroBg.jpg"
-import volunteersIllustration from "../assets/volunteer/illustration.jpeg";
+import volunteersIllustration from "../assets/volunteer/img-2.jpg";
 import { submitVolunteerForm } from "../services/volunteerService";
 
 // ── IMAGE IMPORTS ──────────────────────────────────────────────

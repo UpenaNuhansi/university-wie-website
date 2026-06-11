@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import hero from "../assets/home/hero.png";
+import hero from "../assets/home/hero.jpg";
 import secondimg from "../assets/home/home-pg-2.jpg";
 import useFetchEvents from "../hooks/useFetchEvents";
-import { formatDate } from "../utils/formatDate";
+import HomeEventsSection from "../components/HomeEventsSection";
 
 /* ── tiny hook: fires when element enters viewport ── */
 function useInView(threshold = 0.15) {
@@ -49,24 +49,9 @@ const Home = () => {
   /* fetch events */
   const { events, loading } = useFetchEvents();
 
-  /* get upcoming events (next 3) */
-  const now = new Date();
-  const isComingSoonEvent = (event) => !event.date && (event.comingSoon || event.image);
-  const upcomingEvents = [...events]
-    .filter((event) => (event.date ? new Date(event.date) > now : isComingSoonEvent(event)))
-    .sort((a, b) => {
-      const aTime = a.date ? new Date(a.date).getTime() : Number.MAX_SAFE_INTEGER;
-      const bTime = b.date ? new Date(b.date).getTime() : Number.MAX_SAFE_INTEGER;
-      return aTime - bTime;
-    })
-    .slice(0, 3);
-
   return (
     <>
       <style>{`
-        /* ── Google Fonts ── */
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap');
-
         * { box-sizing: border-box; }
 
         /* ── fade-slide helpers ── */
@@ -128,10 +113,6 @@ const Home = () => {
           background: linear-gradient(135deg, rgba(0,0,0,0.42) 0%, rgba(60,0,90,0.28) 100%);
         }
 
-        /* ── hero heading font ── */
-        .font-display { font-family: 'Cormorant Garamond', serif; }
-        .font-body    { font-family: 'DM Sans', sans-serif; }
-
         /* ── CTA button ── */
         .btn-primary {
           position: relative;
@@ -162,10 +143,10 @@ const Home = () => {
 
         /* ── outline button ── */
         .btn-outline {
-          border: 1.5px solid #7c3aed;
+          border: 1.5px solid #4c1d95;
           padding: 0.625rem 1.5rem;
           border-radius: 0.5rem;
-          color: #7c3aed;
+          color: #4c1d95;
           font-family: 'DM Sans', sans-serif;
           font-size: 0.875rem;
           font-weight: 500;
@@ -173,7 +154,7 @@ const Home = () => {
           cursor: pointer;
           transition: background 0.25s, color 0.25s, transform 0.22s;
         }
-        .btn-outline:hover { background: #ede9fe; transform: translateY(-1px); }
+        .btn-outline:hover { background: #f3e8ff; transform: translateY(-1px); }
 
         /* ── stat badge ── */
         .stat-badge {
@@ -195,122 +176,6 @@ const Home = () => {
           box-shadow: 0 20px 50px rgba(80,0,120,0.18);
         }
 
-        /* ── event cards ── */
-        .event-big {
-          background: linear-gradient(135deg, #3b0764 0%, #1e0538 60%, #0f0218 100%);
-          color: #fff;
-          padding: 2rem;
-          border-radius: 1.1rem;
-          position: relative;
-          overflow: hidden;
-          transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s ease;
-        }
-        .event-big::before {
-          content: '';
-          position: absolute;
-          top: -60px; right: -60px;
-          width: 180px; height: 180px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(219,39,119,0.25) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .event-big:hover { transform: translateY(-5px); box-shadow: 0 18px 48px rgba(60,0,100,0.35); }
-
-        .event-card {
-          background: #fff;
-          padding: 1.5rem;
-          border-radius: 1.1rem;
-          box-shadow: 0 2px 16px rgba(80,0,120,0.07);
-          transition: transform 0.32s cubic-bezier(.22,1,.36,1), box-shadow 0.32s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        .event-card::after {
-          content: '';
-          position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 3px;
-          background: linear-gradient(90deg, #7c3aed, #db2777);
-          transform: scaleX(0);
-          transform-origin: left;
-          transition: transform 0.35s ease;
-        }
-        .event-card:hover { transform: translateY(-5px); box-shadow: 0 14px 36px rgba(80,0,120,0.14); }
-        .event-card:hover::after { transform: scaleX(1); }
-
-        .event-cta {
-          background: linear-gradient(135deg, #5b21b6 0%, #4c1d95 100%);
-          color: #fff;
-          padding: 1.5rem;
-          border-radius: 1.1rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          text-align: center;
-          gap: 1rem;
-          transition: transform 0.32s ease, box-shadow 0.32s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        .event-cta::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(ellipse at 60% 30%, rgba(219,39,119,0.18) 0%, transparent 65%);
-          pointer-events: none;
-        }
-        .event-cta:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(76,29,149,0.32); }
-
-        .btn-white {
-          background: #fff;
-          color: #5b21b6;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 0.875rem;
-          font-weight: 500;
-          padding: 0.6rem 1.4rem;
-          border-radius: 0.45rem;
-          border: none;
-          cursor: pointer;
-          transition: background 0.22s, transform 0.22s;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-        }
-        .btn-white:hover { background: #f3f4f6; transform: scale(1.04); }
-
-        /* ── register button ── */
-        .btn-ghost {
-          border: 1.5px solid rgba(255,255,255,0.7);
-          color: #fff;
-          padding: 0.6rem 1.4rem;
-          border-radius: 0.45rem;
-          background: transparent;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 0.875rem;
-          cursor: pointer;
-          transition: background 0.25s, color 0.25s, transform 0.22s;
-          margin-top: 1rem;
-        }
-        .btn-ghost:hover { background: #fff; color: #1e0538; transform: translateY(-1px); }
-
-        /* ── pink link ── */
-        .pink-link {
-          color: #db2777;
-          font-size: 0.875rem;
-          font-family: 'DM Sans', sans-serif;
-          text-decoration: none;
-          position: relative;
-          display: inline-block;
-        }
-        .pink-link::after {
-          content: '';
-          position: absolute;
-          left: 0; bottom: -1px;
-          width: 0; height: 1px;
-          background: #db2777;
-          transition: width 0.28s ease;
-        }
-        .pink-link:hover::after { width: 100%; }
-
         /* ── decorative grain overlay on sections ── */
         .grain::after {
           content: '';
@@ -321,40 +186,9 @@ const Home = () => {
           mix-blend-mode: multiply;
         }
 
-        /* ── hero tag pulse ── */
-        .tag-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          font-size: 0.7rem;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #6b7280;
-          font-family: 'DM Sans', sans-serif;
-          margin-bottom: 0.6rem;
-        }
-        .tag-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #db2777;
-          animation: pulse-dot 1.8s ease-in-out infinite;
-        }
-        @keyframes pulse-dot {
-          0%,100% { opacity: 1; transform: scale(1); }
-          50%      { opacity: 0.5; transform: scale(1.5); }
-        }
-
-        /* ── section divider line ── */
-        .accent-line {
-          width: 2.5rem;
-          height: 2px;
-          background: linear-gradient(90deg, #db2777, #7c3aed);
-          border-radius: 2px;
-          margin-bottom: 0.75rem;
-        }
       `}</style>
 
-      <div className="w-full font-body">
+      <div className="w-full font-sans">
 
         {/* ================= HERO ================= */}
         <section className="relative min-h-[500px] md:h-[600px]">
@@ -369,16 +203,18 @@ const Home = () => {
             <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
               <div className={`hero-card fade-up ${heroReady ? "visible" : ""} d1`}>
 
-                <div className="tag-pill">
-                  <span className="tag-dot"></span>
-                  Empowering Women in STEM
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-100 shadow-sm mb-4">
+                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                  <span className="text-[10px] md:text-xs font-semibold tracking-widest text-primary/80 uppercase font-sans">
+                    Empowering Women in STEM
+                  </span>
                 </div>
 
-                <h1 className={`font-display text-2xl sm:text-3xl md:text-4xl font-bold text-primary leading-tight mb-4 fade-up ${heroReady ? "visible" : ""} d2`}>
-                  Inspiring the Next Generation of Female Engineers
+                <h1 className={`font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-primary leading-tight mb-4 fade-up ${heroReady ? "visible" : ""} d2`}>
+                  Inspiring the Next Generation of <span className="text-accent font-accentFont">Female</span> Engineers
                 </h1>
 
-                <p className={`font-body text-gray-800 text-sm mb-6 fade-up ${heroReady ? "visible" : ""} d3`}>
+                <p className={`font-sans text-gray-800 text-sm mb-6 fade-up ${heroReady ? "visible" : ""} d3`}>
                   IEEE Women in Engineering (WIE) at Sabaragamuwa University of Sri Lanka
                   is dedicated to promoting women engineers and scientists.
                 </p>
@@ -393,7 +229,7 @@ const Home = () => {
 
 
         {/* ================= WHO WE ARE ================= */}
-        <section className="bg-purple-100 py-16 md:py-20 relative" style={{ position: "relative" }}>
+        <section className="bg-purpleLight py-16 md:py-20 relative">
           <div ref={whoRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 items-center">
 
             {/* IMAGE */}
@@ -404,30 +240,30 @@ const Home = () => {
                 className="img-lift rounded-xl shadow-lg w-full"
               />
               <div className={`stat-badge -top-4 -left-4 hidden sm:block fade-up ${whoVisible ? "visible" : ""} d3`}>
-                <p className="font-display text-pink-600 font-bold text-lg leading-none">
+                <p className="font-serif text-accent font-bold text-lg leading-none">
                   <Counter target={50} />
                 </p>
-                <p className="font-body text-xs text-gray-500 mt-0.5">Events Hosted</p>
+                <p className="font-sans text-xs text-gray-500 mt-0.5">Events Hosted</p>
               </div>
               <div className={`stat-badge -bottom-4 right-4 hidden sm:block fade-up ${whoVisible ? "visible" : ""} d4`}>
-                <p className="font-display text-pink-600 font-bold text-lg leading-none">
+                <p className="font-serif text-accent font-bold text-lg leading-none">
                   <Counter target={500} />
                 </p>
-                <p className="font-body text-xs text-gray-500 mt-0.5">Active Members</p>
+                <p className="font-sans text-xs text-gray-500 mt-0.5">Active Members</p>
               </div>
             </div>
 
             {/* TEXT */}
             <div className={`fade-right ${whoVisible ? "visible" : ""} d2`}>
-              <div className="accent-line"></div>
-              <p className="font-body text-pink-600 text-sm font-semibold mb-2 tracking-widest uppercase">
+              <div className="w-10 h-0.5 bg-gradient-to-r from-accent to-purple-500 mb-4 rounded-full"></div>
+              <p className="font-sans text-accent text-sm font-semibold mb-2 tracking-widest uppercase">
                 Who We Are
               </p>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-900 mb-4 leading-tight">
+              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-primary mb-4 leading-tight">
                 More than a chapter. <br />
-                <span className="text-pink-600 italic">A movement.</span>
+                <span className="text-accent font-accentFont">A movement.</span>
               </h2>
-              <p className="font-body text-gray-600 mb-6 leading-relaxed">
+              <p className="font-sans text-gray-800 mb-6 leading-relaxed">
                 The IEEE WIE Student Branch Affinity Group fosters leadership,
                 mentorship, and networking opportunities.
               </p>
@@ -437,78 +273,12 @@ const Home = () => {
         </section>
 
 
-        {/* ================= EVENTS ================= */}
-        <section className="bg-purple-100 pb-16 md:pb-20">
-          <div ref={eventsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div className={`mb-10 fade-up ${eventsVisible ? "visible" : ""} d1`}>
-              <div className="accent-line"></div>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-purple-900 mb-2">
-                Where ideas meet <span className="text-pink-600 italic">momentum</span>
-              </h2>
-              <p className="font-body text-sm text-pink-600">
-                Join sessions designed to challenge and elevate your career.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-
-              {/* BIG CARD - First Event */}
-              {!loading && upcomingEvents.length > 0 ? (
-                <div className={`event-big md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d2`}>
-                  <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">{upcomingEvents[0].date ? formatDate(upcomingEvents[0].date) : 'Coming Soon'}</p>
-                  <h3 className="font-display text-xl sm:text-2xl font-semibold mb-1 leading-snug">
-                    {upcomingEvents[0].title}
-                  </h3>
-                  <a href={`/events/${upcomingEvents[0].id}`} className="btn-ghost">View Details</a>
-                </div>
-              ) : (
-                <div className={`event-big md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d2`}>
-                  <p className="font-body text-xs text-purple-300 mb-2 tracking-widest uppercase">No upcoming events</p>
-                </div>
-              )}
-
-              {/* SIDE CARD - Second Event */}
-              {!loading && upcomingEvents.length > 1 ? (
-                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d3`}>
-                  <p className="font-body text-sm text-gray-400 mb-2">{upcomingEvents[1].date ? formatDate(upcomingEvents[1].date) : 'Coming Soon'}</p>
-                  <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
-                    {upcomingEvents[1].title}
-                  </h3>
-                  <a href={`/events/${upcomingEvents[1].id}`} className="pink-link">View Details →</a>
-                </div>
-              ) : (
-                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d3`}>
-                  <p className="font-body text-sm text-gray-400 mb-2">No event</p>
-                </div>
-              )}
-
-              {/* SMALL - Third Event */}
-              {!loading && upcomingEvents.length > 2 ? (
-                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d4`}>
-                  <p className="font-body text-sm text-gray-400 mb-2">{upcomingEvents[2].date ? formatDate(upcomingEvents[2].date) : 'Coming Soon'}</p>
-                  <h3 className="font-display text-lg font-semibold text-purple-900 mb-2">
-                    {upcomingEvents[2].title}
-                  </h3>
-                  <a href={`/events/${upcomingEvents[2].id}`} className="pink-link">View Details →</a>
-                </div>
-              ) : (
-                <div className={`event-card fade-up ${eventsVisible ? "visible" : ""} d4`}>
-                  <p className="font-body text-sm text-gray-400 mb-2">No event</p>
-                </div>
-              )}
-
-              {/* CTA */}
-              <div className={`event-cta md:col-span-2 fade-up ${eventsVisible ? "visible" : ""} d5`}>
-                <h3 className="font-display text-xl font-semibold">
-                  Have an idea for an event?
-                </h3>
-                <button className="btn-white"><a href="/contact">Propose Idea</a></button>
-              </div>
-
-            </div>
-          </div>
-        </section>
+        <HomeEventsSection
+          events={events}
+          loading={loading}
+          sectionRef={eventsRef}
+          visible={eventsVisible}
+        />
 
       </div>
     </>

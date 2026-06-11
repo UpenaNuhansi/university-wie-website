@@ -8,24 +8,15 @@ import GalleryCard from '../components/GalleryCard';
    Inject global styles once (fonts + keyframes)
   ───────────────────────────────────────────── */
 const GLOBAL_STYLE = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
-
   :root {
-    --purple-950: #2d0a4e;
-    --purple-900: #4a1572;
-    --purple-800: #6b21a8;
-    --purple-700: #7e22ce;
-    --purple-600: #9333ea;
-    --purple-200: #e9d5ff;
-    --purple-100: #f3e8ff;
-    --pink-600:   #db2777;
-    --pink-700:   #be185d;
-    --bg-base:    #f3e8f7;
-    --white:      #ffffff;
-    --gray-600:   #4b5563;
-    --gray-500:   #6b7280;
-    --gray-200:   #e5e7eb;
-    --gray-100:   #f3f4f6;
+    --primary:      #4c1d95;
+    --accent:       #db2777;
+    --purple-dark:  #1e0538;
+    --purple-light: rgba(218, 185, 255, 0.3);
+    --purple-200:   #e9d5ff;
+    --purple-100:   #f3e8ff;
+    --white:        #ffffff;
+    --gray-500:     #6b7280;
   }
 
   @keyframes gal-fadeUp {
@@ -134,13 +125,9 @@ export default function Gallery() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
-
         * { box-sizing: border-box; }
 
         .gal-root {
-          font-family: 'DM Sans', sans-serif;
-          background: var(--bg-base);
           overflow-x: hidden;
           min-height: 100vh;
         }
@@ -149,7 +136,6 @@ export default function Gallery() {
         .gal-hero {
           position: relative;
           overflow: hidden;
-          background: var(--bg-base);
           padding: clamp(56px, 8vw, 100px) clamp(20px, 5vw, 72px) clamp(40px, 6vw, 72px);
           text-align: center;
         }
@@ -180,59 +166,6 @@ export default function Gallery() {
           right: -80px;
           background: radial-gradient(circle, rgba(219,39,119,0.10) 0%, transparent 70%);
           animation: gal-orb 15s ease-in-out infinite reverse;
-        }
-
-        .gal-eyebrow {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          margin: 0 0 18px;
-          padding: 6px 16px;
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.9);
-          box-shadow: 0 8px 24px rgba(122, 33, 158, 0.12);
-          border: 1px solid rgba(122, 33, 158, 0.08);
-          font-size: 0.7rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.18em;
-          color: var(--purple-900);
-          position: relative;
-          backdrop-filter: blur(8px);
-        }
-
-        .gal-eyebrow-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, var(--pink-600), #c026d3);
-          box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.12);
-          flex: 0 0 auto;
-        }
-
-        .gal-eyebrow-label {
-          line-height: 1;
-        }
-
-        .gal-hero-title {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(32px, 5vw, 58px);
-          font-weight: 700;
-          color: var(--purple-900);
-          margin: 0 0 18px;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
-          position: relative;
-        }
-
-        .gal-hero-sub {
-          font-size: clamp(0.875rem, 1.5vw, 1rem);
-          color: var(--purple-800);
-          opacity: 0.78;
-          max-width: 560px;
-          margin: 0 auto;
-          line-height: 1.75;
-          position: relative;
         }
 
         /* ── Filter strip ── */
@@ -280,29 +213,29 @@ export default function Gallery() {
 
         .gal-filter-btn.inactive {
           background: var(--white);
-          color: var(--purple-700);
-          border-color: rgba(147,51,234,0.15);
-          box-shadow: 0 2px 8px rgba(74,21,114,0.05);
+          color: var(--primary);
+          border-color: rgba(76, 29, 149, 0.15);
+          box-shadow: 0 2px 8px rgba(76, 29, 149, 0.05);
         }
 
         .gal-filter-btn.inactive:hover {
           background: var(--purple-100);
-          border-color: rgba(147,51,234,0.3);
+          border-color: rgba(76, 29, 149, 0.3);
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(74,21,114,0.10);
+          box-shadow: 0 6px 20px rgba(76, 29, 149, 0.10);
         }
 
         .gal-filter-btn.active {
-          background: linear-gradient(135deg, var(--pink-600) 0%, #c026d3 100%);
+          background: var(--accent);
           color: #fff;
           border-color: transparent;
-          box-shadow: 0 4px 18px rgba(219,39,119,0.35);
+          box-shadow: 0 4px 18px rgba(219, 39, 119, 0.35);
           transform: translateY(-1px);
         }
 
         .gal-filter-btn.active:hover {
           transform: translateY(-3px);
-          box-shadow: 0 8px 28px rgba(219,39,119,0.45);
+          box-shadow: 0 8px 28px rgba(219, 39, 119, 0.45);
         }
 
         /* ── Grid section ── */
@@ -315,7 +248,7 @@ export default function Gallery() {
         .gal-count-label {
           font-size: 0.78rem;
           font-weight: 600;
-          color: var(--gray-500);
+          color: var(--accent);
           letter-spacing: 0.06em;
           text-transform: uppercase;
           margin-bottom: 24px;
@@ -343,10 +276,11 @@ export default function Gallery() {
         }
 
         .gal-skeleton-card {
-          border-radius: 20px;
+          border-radius: 24px;
           overflow: hidden;
           background: var(--white);
-          box-shadow: 0 2px 14px rgba(74,21,114,0.05);
+          border: 1px solid var(--purple-100);
+          box-shadow: 0 2px 14px rgba(76, 29, 149, 0.05);
         }
 
         .gal-skeleton-img {
@@ -387,26 +321,27 @@ export default function Gallery() {
         .gal-empty-icon {
           width: 64px;
           height: 64px;
-          border-radius: 50%;
-          background: var(--purple-100);
+          border-radius: 16px;
+          background: var(--purple-light);
+          border: 1px solid var(--purple-100);
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto 20px;
-          color: var(--purple-600);
+          color: var(--accent);
         }
 
         .gal-empty-title {
           font-family: 'Cormorant Garamond', serif;
           font-size: 1.5rem;
           font-weight: 700;
-          color: var(--purple-900);
+          color: var(--primary);
           margin: 0 0 8px;
         }
 
         .gal-empty-sub {
           font-size: 0.88rem;
-          color: var(--gray-500);
+          color: #333333;
           margin: 0;
         }
 
@@ -425,8 +360,8 @@ export default function Gallery() {
         }
 
         .gal-load-btn {
-          border: 2px solid var(--purple-900);
-          color: var(--purple-900);
+          border: 2px solid var(--primary);
+          color: var(--primary);
           background: transparent;
           padding: 13px 36px;
           border-radius: 12px;
@@ -444,10 +379,10 @@ export default function Gallery() {
         }
 
         .gal-load-btn:hover {
-          background: var(--purple-900);
+          background: var(--primary);
           color: #fff;
           transform: translateY(-3px);
-          box-shadow: 0 10px 28px rgba(74,21,114,0.2);
+          box-shadow: 0 10px 28px rgba(76, 29, 149, 0.2);
         }
 
         .gal-load-btn:active {
@@ -469,25 +404,27 @@ export default function Gallery() {
         }
       `}</style>
 
-      <div className="gal-root">
+      <div className="gal-root bg-purpleLight font-sans">
 
         {/* ── Hero ── */}
-        <div className="gal-hero" ref={heroRef}>
-          <p
-            className={`gal-eyebrow f-up ${heroVisible ? 'vis' : ''}`}
+        <div className="gal-hero bg-purpleLight" ref={heroRef}>
+          <div
+            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-100 shadow-sm mb-8 f-up ${heroVisible ? 'vis' : ''}`}
             style={{ transitionDelay: '0.04s' }}
           >
-            <span className="gal-eyebrow-dot" aria-hidden="true" />
-            <span className="gal-eyebrow-label">Visual Journey</span>
-          </p>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+            <span className="text-[10px] md:text-xs font-semibold tracking-widest text-primary/80 uppercase font-sans">
+              Visual Journey
+            </span>
+          </div>
           <h1
-            className={`gal-hero-title f-up ${heroVisible ? 'vis' : ''}`}
+            className={`font-serif text-3xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 leading-tight f-up ${heroVisible ? 'vis' : ''}`}
             style={{ transitionDelay: '0.12s' }}
           >
-            Our Community in Action
+            Our Community in <span className="text-accent font-accentFont">Action</span>
           </h1>
           <p
-            className={`gal-hero-sub f-up ${heroVisible ? 'vis' : ''}`}
+            className={`font-sans text-gray-800 text-base md:text-lg max-w-2xl mx-auto leading-relaxed f-up ${heroVisible ? 'vis' : ''}`}
             style={{ transitionDelay: '0.2s' }}
           >
             Capturing impactful moments, inspiring events, and brilliant minds that

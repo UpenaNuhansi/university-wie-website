@@ -1,6 +1,6 @@
 // src/pages/Contact.jsx
 import React, { useEffect, useRef, useState } from "react";
-import contactHeroBg from "../assets/contact/hero-bg.jpeg";        // optional hero image
+import contactHeroBg from "../assets/contact/hero-bg.jpg";        // optional hero image
 import { submitContactMessage } from "../services/contactService";
 
 // Intersection Observer hook (same as volunteer)

@@ -313,7 +313,7 @@ const Footer = () => {
           <div className="footer-divider"></div>
           <div className={`footer-bottom f-up fd4 ${footerVisible ? "vis" : ""}`}>
             <p className="footer-copy">
-              © 2026 IEEE WIE SUSL. All Rights Reserved. Made with <span className="footer-heart">♥</span> for women in STEM.
+              © 2026 IEEE WIE SUSL. All Rights Reserved.
             </p>
           </div>
         </div>

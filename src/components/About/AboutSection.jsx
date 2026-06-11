@@ -1,5 +1,6 @@
 import React from 'react';
 import { useInView } from '../../hooks/useInView';
+import aboutImage from '../../assets/about/ab-bg.jpg';
 
 const AboutSection = () => {
   const [sectionRef, isVisible] = useInView(0.2);
@@ -33,7 +34,7 @@ const AboutSection = () => {
               alt="WIE Team working" 
               className="relative rounded-3xl shadow-2xl w-full object-cover aspect-[4/3] transform group-hover:scale-[1.02] transition-transform duration-500"
               onError={(e) => {
-                e.target.src = "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1000&auto=format&fit=crop";
+                e.target.src = aboutImage;
               }}
             />
           </div>
