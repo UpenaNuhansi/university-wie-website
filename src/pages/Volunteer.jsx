@@ -1,33 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
-import heroBg from "../assets/volunteer/heroBg.jpg"
+import React, { useEffect, useState } from "react";
+import heroBg from "../assets/volunteer/heroBg.jpg";
 import volunteersIllustration from "../assets/volunteer/img-2.jpg";
 import { submitVolunteerForm } from "../services/volunteerService";
+import { useInView } from "../hooks/useInView";
 
-// ── IMAGE IMPORTS ──────────────────────────────────────────────
-// 🖼️ Hero background image (group photo of volunteers in purple shirts)
-// import heroBg from "../assets/volunteer/hero-bg.jpg";
-
-// 🖼️ Bottom illustration inside "Why Volunteer" card
-//    (illustrated women standing in front of university building)
-// import volunteersIllustration from "../assets/volunteer/illustration.png";
-// ──────────────────────────────────────────────────────────────
-
-/* ── tiny intersection-observer hook ── */
-function useInView(threshold = 0.12) {
-  const ref = useRef(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-  return [ref, visible];
-}
-
-/* ── reasons list ── */
 const reasons = [
   {
     icon: (
@@ -35,8 +11,6 @@ const reasons = [
         <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
       </svg>
     ),
-    color: "#db2777",
-    bg: "rgba(219,39,119,0.10)",
     title: "Gain Experience",
     desc: "Develop leadership, event management, and technical skills in a supportive, real-world environment.",
   },
@@ -47,8 +21,6 @@ const reasons = [
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     ),
-    color: "#7c3aed",
-    bg: "rgba(124,58,237,0.10)",
     title: "Networking",
     desc: "Connect with industry professionals, academic leaders, and like-minded peers across the university.",
   },
@@ -58,23 +30,21 @@ const reasons = [
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
       </svg>
     ),
-    color: "#db2777",
-    bg: "rgba(219,39,119,0.10)",
     title: "Community Impact",
     desc: "Play a direct role in empowering women in STEM and fostering a more inclusive tech community.",
   },
 ];
 
 const Volunteer = () => {
-  /* hero stagger */
   const [heroReady, setHeroReady] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setHeroReady(true), 120); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setHeroReady(true), 120);
+    return () => clearTimeout(t);
+  }, []);
 
-  /* section refs */
-  const [leftRef,  leftVisible]  = useInView();
-  const [rightRef, rightVisible] = useInView();
+  const [leftRef, leftVisible] = useInView(0.12);
+  const [rightRef, rightVisible] = useInView(0.12);
 
-  /* form state */
   const [form, setForm] = useState({ name: "", email: "", dept: "", skills: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,7 +56,6 @@ const Volunteer = () => {
     e.preventDefault();
     setError("");
 
-    // Validation
     if (!form.name.trim()) {
       setError("Full name is required");
       return;
@@ -127,515 +96,180 @@ const Volunteer = () => {
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+    <div className="bg-purpleLight min-h-screen font-sans pt-6 pb-12">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden min-h-[420px] md:min-h-[480px] flex items-end rounded-b-[2rem] mx-4 md:mx-8 lg:mx-12 shadow-2xl">
+        <img 
+          src={heroBg} 
+          alt="Volunteers" 
+          className={`absolute inset-0 w-full h-full object-cover object-top transition-transform duration-[10000ms] ${heroReady ? 'scale-105' : 'scale-100'}`} 
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-purpleDark/80 via-primary/60 to-accent/40" />
+        
+        <div className="relative z-10 p-8 md:p-12 lg:p-16 max-w-3xl">
+          <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-sm mb-6 transition-all duration-1000 ${heroReady ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
+            <span className="text-[10px] md:text-xs font-semibold tracking-widest text-white uppercase font-sans">
+              Join the Team
+            </span>
+          </div>
+          
+          <h1 className={`text-3xl md:text-5xl font-bold text-white mb-6 leading-tight font-serif transition-all duration-1000 delay-200 ${heroReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            Become an Event <span className="text-pink-300 font-accentFont font-normal">Volunteer</span>
+          </h1>
+          
+          <p className={`text-white/80 text-sm md:text-base leading-relaxed max-w-xl mb-8 font-medium transition-all duration-1000 delay-500 ${heroReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            Empower your peers, build your skills, and help us create unforgettable experiences for women in STEM at Sabaragamuwa University.
+          </p>
+          
+          <button
+            onClick={() => document.getElementById("vol-form").scrollIntoView({ behavior: "smooth" })}
+            className={`px-8 py-3 bg-accent text-white font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg shadow-pink-500/30 font-sans cursor-pointer ${heroReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+          >
+            Apply Now
+          </button>
+        </div>
+      </section>
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        .vol-root { font-family: 'DM Sans', sans-serif; background: #f5f3ff; width: 100%; }
-
-        /* ── HERO ── */
-        .vol-hero {
-          position: relative;
-          min-height: 420px;
-          display: flex;
-          align-items: flex-end;
-          overflow: hidden;
-          border-radius: 0 0 1.5rem 1.5rem;
-          margin: 0 1rem 0;
-        }
-        @media (min-width: 768px) { .vol-hero { margin: 0 2rem 0; min-height: 460px; } }
-        @media (min-width: 1024px) { .vol-hero { margin: 0 3rem 0; } }
-
-        .vol-hero-img {
-          position: absolute; inset: 0;
-          width: 100%; height: 100%;
-          object-fit: cover;
-          object-position: center top;
-          /* 🖼️ Replace background-color with the actual <img> tag once you add heroBg */
-          background: linear-gradient(135deg, #4c1d95 0%, #1e1b4b 40%, #6d28d9 100%);
-          animation: kenburns-vol 18s ease-in-out infinite alternate;
-        }
-        @keyframes kenburns-vol {
-          from { transform: scale(1); }
-          to   { transform: scale(1.06); }
-        }
-
-        .vol-hero-overlay {
-          position: absolute; inset: 0;
-          background: linear-gradient(to right,
-            rgba(0,0,0,0.65) 0%,
-            rgba(30,0,60,0.45) 55%,
-            rgba(0,0,0,0.15) 100%);
-        }
-
-        .vol-hero-content {
-          position: relative; z-index: 2;
-          padding: 3rem 2rem 2.5rem;
-          max-width: 600px;
-        }
-        @media (min-width: 768px) { .vol-hero-content { padding: 3.5rem 3rem 3rem; } }
-
-        .vol-hero-tag {
-          display: inline-flex; align-items: center; gap: 0.5rem;
-          background: rgba(255,255,255,0.15);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,0.3);
-          border-radius: 999px;
-          padding: 0.3rem 0.9rem;
-          font-size: 0.7rem;
-          font-weight: 600;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: #fff;
-          margin-bottom: 1.1rem;
-        }
-        .vol-hero-tag-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #f472b6;
-          animation: blink 1.8s ease-in-out infinite;
-        }
-        @keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.5)} }
-
-        .vol-hero-h1 {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(2rem, 5vw, 3rem);
-          font-weight: 700;
-          color: #fff;
-          line-height: 1.15;
-          margin-bottom: 0.85rem;
-        }
-        .vol-hero-p {
-          font-size: 0.9rem;
-          color: rgba(255,255,255,0.82);
-          line-height: 1.65;
-          margin-bottom: 1.75rem;
-          max-width: 440px;
-        }
-
-        /* apply now button */
-        .btn-apply {
-          display: inline-block;
-          background: #db2777;
-          color: #fff;
-          padding: 0.7rem 1.8rem;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          font-weight: 600;
-          text-decoration: none;
-          border: none; cursor: pointer;
-          position: relative; overflow: hidden;
-          transition: transform 0.22s, box-shadow 0.22s;
-          box-shadow: 0 4px 18px rgba(219,39,119,0.45);
-        }
-        .btn-apply::after {
-          content: '';
-          position: absolute; inset: 0;
-          background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.22) 50%, transparent 70%);
-          transform: translateX(-100%);
-          transition: transform 0.5s ease;
-        }
-        .btn-apply:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(219,39,119,0.55); }
-        .btn-apply:hover::after { transform: translateX(100%); }
-
-        /* ── fade-up helpers ── */
-        .f-up {
-          opacity: 0; transform: translateY(28px);
-          transition: opacity 0.72s cubic-bezier(.22,1,.36,1), transform 0.72s cubic-bezier(.22,1,.36,1);
-        }
-        .f-left {
-          opacity: 0; transform: translateX(-32px);
-          transition: opacity 0.72s cubic-bezier(.22,1,.36,1), transform 0.72s cubic-bezier(.22,1,.36,1);
-        }
-        .f-right {
-          opacity: 0; transform: translateX(32px);
-          transition: opacity 0.72s cubic-bezier(.22,1,.36,1), transform 0.72s cubic-bezier(.22,1,.36,1);
-        }
-        .f-up.vis, .f-left.vis, .f-right.vis { opacity: 1; transform: none; }
-        .fd1{transition-delay:.05s} .fd2{transition-delay:.18s} .fd3{transition-delay:.30s}
-        .fd4{transition-delay:.42s} .fd5{transition-delay:.54s}
-
-        /* hero specific stagger — driven by heroReady */
-        .h-tag  { opacity:0; transform:translateY(16px); transition: opacity .5s ease .1s, transform .5s ease .1s; }
-        .h-h1   { opacity:0; transform:translateY(20px); transition: opacity .6s ease .25s, transform .6s ease .25s; }
-        .h-p    { opacity:0; transform:translateY(20px); transition: opacity .6s ease .4s,  transform .6s ease .4s; }
-        .h-btn  { opacity:0; transform:translateY(20px); transition: opacity .6s ease .55s, transform .6s ease .55s; }
-        .hero-ready .h-tag,
-        .hero-ready .h-h1,
-        .hero-ready .h-p,
-        .hero-ready .h-btn { opacity:1; transform:translateY(0); }
-
-        /* ── MAIN SECTION ── */
-        .vol-main {
-          max-width: 1100px;
-          margin: 2.5rem auto;
-          padding: 0 1rem;
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 1.5rem;
-        }
-        @media (min-width: 768px) {
-          .vol-main { grid-template-columns: 1fr 1.6fr; gap: 2rem; padding: 0 2rem; }
-        }
-        @media (min-width: 1024px) { .vol-main { padding: 0 3rem; } }
-
-        /* ── WHY VOLUNTEER CARD ── */
-        .why-card {
-          background: #fff;
-          border-radius: 1.25rem;
-          padding: 2rem 1.75rem;
-          box-shadow: 0 4px 28px rgba(80,0,140,0.08);
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-
-        .why-h2 {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.6rem;
-          font-weight: 700;
-          color: #4c1d95;
-          margin-bottom: 1.5rem;
-          line-height: 1.2;
-        }
-
-        .reason-item {
-          display: flex; align-items: flex-start; gap: 1rem;
-          padding: 1.1rem 0;
-          border-bottom: 1px solid rgba(124,58,237,0.07);
-          transition: background 0.22s;
-          border-radius: 0.5rem;
-          padding-left: 0.25rem;
-        }
-        .reason-item:last-of-type { border-bottom: none; }
-        .reason-item:hover { background: rgba(245,243,255,0.7); }
-
-        .reason-icon {
-          width: 2.6rem; height: 2.6rem; border-radius: 0.65rem;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-          transition: transform 0.3s cubic-bezier(.22,1,.36,1);
-        }
-        .reason-item:hover .reason-icon { transform: scale(1.12) rotate(-3deg); }
-
-        .reason-title {
-          font-weight: 600; font-size: 1rem;
-          color: #1f2937;
-          margin-bottom: 0.3rem;
-        }
-        .reason-desc {
-          font-size: 0.845rem; color: #6b7280; line-height: 1.6;
-        }
-
-        /* illustration area */
-        .illustration-wrap {
-          margin-top: 1.5rem;
-          border-radius: 0.85rem;
-          overflow: hidden;
-          min-height: 180px;
-          background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
-          display: flex; align-items: center; justify-content: center;
-          position: relative;
-        }
-        .illustration-wrap img {
-          width: 100%; height: 100%; object-fit: cover;
-        }
-        /* placeholder shown until image is added */
-        .illustration-placeholder {
-          display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-          color: #a78bfa; font-size: 0.75rem; text-align: center; padding: 1.5rem;
-        }
-
-        /* ── FORM CARD ── */
-        .form-card {
-          background: #fff;
-          border-radius: 1.25rem;
-          padding: 2rem 1.75rem 2.25rem;
-          box-shadow: 0 4px 28px rgba(80,0,140,0.08);
-        }
-
-        .form-h2 {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.9rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 0.4rem;
-        }
-        .form-sub {
-          font-size: 0.845rem; color: #6b7280;
-          line-height: 1.55; margin-bottom: 1.75rem;
-        }
-
-        .form-grid-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 1rem;
-        }
-        @media (max-width: 540px) { .form-grid-2 { grid-template-columns: 1fr; } }
-
-        .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-        .form-group-full { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
-
-        .form-label {
-          font-size: 0.8125rem; font-weight: 500; color: #374151;
-        }
-
-        .form-input, .form-textarea {
-          width: 100%;
-          padding: 0.65rem 0.9rem;
-          border: 1.5px solid #e5e7eb;
-          border-radius: 0.5rem;
-          font-size: 0.875rem;
-          font-family: 'DM Sans', sans-serif;
-          color: #1f2937;
-          background: #fafafa;
-          transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
-          outline: none;
-        }
-        .form-input::placeholder, .form-textarea::placeholder { color: #9ca3af; }
-        .form-input:focus, .form-textarea:focus {
-          border-color: #7c3aed;
-          box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
-          background: #fff;
-        }
-        .form-textarea { resize: vertical; min-height: 110px; }
-
-        /* submit button */
-        .btn-submit {
-          width: 100%;
-          padding: 0.85rem 1.5rem;
-          background: linear-gradient(90deg, #db2777 0%, #be185d 100%);
-          color: #fff;
-          font-size: 0.9375rem;
-          font-weight: 600;
-          font-family: 'DM Sans', sans-serif;
-          border: none; border-radius: 0.55rem;
-          cursor: pointer;
-          display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-          margin-top: 1.25rem;
-          position: relative; overflow: hidden;
-          transition: transform 0.22s, box-shadow 0.22s, opacity 0.22s;
-          box-shadow: 0 4px 18px rgba(219,39,119,0.38);
-        }
-        .btn-submit::after {
-          content: '';
-          position: absolute; inset: 0;
-          background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
-          transform: translateX(-100%);
-          transition: transform 0.5s ease;
-        }
-        .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(219,39,119,0.48); }
-        .btn-submit:hover::after { transform: translateX(100%); }
-        .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        /* loading spinner */
-        .spinner {
-          width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4);
-          border-top-color: #fff; border-radius: 50%;
-          animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* success state */
-        .success-box {
-          text-align: center; padding: 2.5rem 1.5rem;
-          animation: pop-in 0.5s cubic-bezier(.22,1,.36,1);
-        }
-        @keyframes pop-in {
-          from { opacity:0; transform: scale(0.88); }
-          to   { opacity:1; transform: scale(1); }
-        }
-        .success-icon {
-          width: 3.5rem; height: 3.5rem; border-radius: 50%;
-          background: linear-gradient(135deg, #db2777, #7c3aed);
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 1rem;
-          box-shadow: 0 6px 24px rgba(219,39,119,0.35);
-        }
-        .success-h { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 700; color: #4c1d95; margin-bottom: 0.5rem; }
-        .success-p { font-size: 0.875rem; color: #6b7280; line-height: 1.6; }
-      `}</style>
-
-      <div className="vol-root">
-
-        {/* ══════════════ HERO ══════════════ */}
-        <div style={{ background: "#f5f3ff", paddingTop: "1.5rem", paddingBottom: "0" }}>
-          <section className={`vol-hero ${heroReady ? "hero-ready" : ""}`}>
-
+      {/* Main Grid */}
+      <div className="max-w-7xl mx-auto py-12 md:py-20 px-6 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        {/* Left Column: Why Volunteer */}
+        <div 
+          ref={leftRef} 
+          className={`md:col-span-5 bg-white p-6 md:p-10 rounded-3xl border border-purple-100 shadow-sm hover:shadow-xl hover:shadow-purple-200/50 transition-all duration-1000 flex flex-col justify-between ${leftVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'}`}
+        >
+          <div>
+            <div className="w-10 h-0.5 bg-gradient-to-r from-accent to-purple-500 mb-4 rounded-full"></div>
+            <h2 className="text-2xl md:text-3xl font-bold text-primary mb-8 font-serif tracking-tight">Why Volunteer with Us?</h2>
             
-            {/* <div className="vol-hero-img" aria-hidden="true" /> */}
-            <img src={heroBg} alt="volunteers" className="vol-hero-img" />
+            <div className="space-y-6">
+              {reasons.map(({ icon, title, desc }) => (
+                <div key={title} className="flex gap-4 group">
+                  <div className="w-12 h-12 rounded-2xl bg-purpleLight flex items-center justify-center border border-purple-100 shadow-sm group-hover:scale-110 transition-transform duration-300 shrink-0 text-accent">
+                    {icon}
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-primary font-sans mb-1">{title}</h4>
+                    <p className="text-gray-800 text-sm leading-relaxed font-sans">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-            <div className="vol-hero-overlay" />
+          <div className="mt-8 relative group rounded-2xl overflow-hidden aspect-[4/3] w-full">
+            <div className="absolute -inset-4 bg-gradient-to-tr from-accent to-primary rounded-2xl opacity-10 blur-xl group-hover:opacity-25 transition duration-500"></div>
+            <img 
+              src={volunteersIllustration} 
+              alt="Volunteers illustration" 
+              className="relative rounded-2xl shadow-md w-full h-full object-cover transform group-hover:scale-[1.02] transition-transform duration-500" 
+            />
+          </div>
+        </div>
 
-            <div className="vol-hero-content">
-              <span className="vol-hero-tag h-tag">
-                <span className="vol-hero-tag-dot" />
-                Join the Team
-              </span>
-
-              <h1 className="vol-hero-h1 h-h1">
-                Become an Event Volunteer
-              </h1>
-
-              <p className="vol-hero-p h-p">
-                Empower your peers, build your skills, and help us create unforgettable
-                experiences for women in STEM at Sabaragamuwa University.
+        {/* Right Column: Form */}
+        <div 
+          id="vol-form"
+          ref={rightRef}
+          className={`md:col-span-7 bg-white p-6 md:p-10 rounded-3xl border border-purple-100 shadow-sm hover:shadow-xl hover:shadow-purple-200/50 transition-all duration-1000 ${rightVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}
+        >
+          {submitted ? (
+            <div className="text-center py-12 px-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-accent to-primary flex items-center justify-center mb-6 shadow-lg shadow-purple-200/50">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-primary mb-4 font-serif">Application Submitted!</h3>
+              <p className="text-gray-800 text-base leading-relaxed font-sans max-w-md">
+                Thank you for your interest in volunteering with IEEE WIE SUSL. We will review your application and get in touch with you shortly.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="w-10 h-0.5 bg-gradient-to-r from-accent to-purple-500 mb-4 rounded-full"></div>
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-2 font-serif tracking-tight">Volunteer Application</h2>
+              <p className="text-gray-800 text-sm leading-relaxed mb-8 font-sans font-medium">
+                Fill out the form below to express your interest in joining our volunteer pool for upcoming events.
               </p>
 
-              <button
-                className="btn-apply h-btn"
-                onClick={() => document.getElementById("vol-form").scrollIntoView({ behavior: "smooth" })}
-              >
-                Apply Now
-              </button>
-            </div>
-          </section>
-        </div>
-
-        {/* ══════════════ MAIN GRID ══════════════ */}
-        <div className="vol-main">
-
-          {/* ── LEFT: Why Volunteer ── */}
-          <div ref={leftRef} className={`why-card f-left fd1 ${leftVisible ? "vis" : ""}`}>
-
-            <h2 className="why-h2">Why Volunteer with Us?</h2>
-
-            {reasons.map(({ icon, color, bg, title, desc }, i) => (
-              <div
-                key={title}
-                className={`reason-item f-up fd${i + 2} ${leftVisible ? "vis" : ""}`}
-              >
-                <div className="reason-icon" style={{ background: bg, color }}>
-                  {icon}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-semibold flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                  {error}
                 </div>
-                <div>
-                  <p className="reason-title">{title}</p>
-                  <p className="reason-desc">{desc}</p>
-                </div>
-              </div>
-            ))}
+              )}
 
-            
-            <div className="illustration-wrap" style={{ marginTop: "1.5rem" }}>
-              <img src={volunteersIllustration} alt="volunteers illustration" />
-              {/* <div className="illustration-placeholder">
-                <div className="illustration-wrap">
-                  <img src={volunteersIllustration} alt="volunteers illustration" />
-                </div>
-              </div> */}
-            </div>
-          </div>
-
-          {/* ── RIGHT: Application Form ── */}
-          <div
-            id="vol-form"
-            ref={rightRef}
-            className={`form-card f-right fd1 ${rightVisible ? "vis" : ""}`}
-          >
-            {submitted ? (
-              <div className="success-box">
-                <div className="success-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <h3 className="success-h">Application Submitted!</h3>
-                <p className="success-p">
-                  Thank you for your interest in volunteering with IEEE WIE SUSL.<br />
-                  We'll be in touch with you shortly.
-                </p>
-              </div>
-            ) : (
-              <>
-                <h2 className="form-h2">Volunteer Application</h2>
-                <p className="form-sub">
-                  Fill out the form below to express your interest in joining our volunteer pool for upcoming events.
-                </p>
-
-                {error && (
-                  <div style={{
-                    marginBottom: "1.25rem",
-                    padding: "0.9rem 1rem",
-                    background: "#fee2e2",
-                    border: "1px solid #fecaca",
-                    borderRadius: "0.5rem",
-                    color: "#dc2626",
-                    fontSize: "0.875rem",
-                    fontWeight: "500"
-                  }}>
-                    {error}
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} noValidate>
-
-                  <div className="form-grid-2">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="name">Full Name</label>
-                      <input
-                        id="name" name="name" type="text"
-                        className="form-input"
-                        placeholder="Jane Doe"
-                        value={form.name}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="email">University Email</label>
-                      <input
-                        id="email" name="email" type="email"
-                        className="form-input"
-                        placeholder="jane@std.susl.lk"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-group-full">
-                    <label className="form-label" htmlFor="dept">Department & Batch</label>
+              <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex flex-col">
+                    <label className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 font-sans" htmlFor="name">Full Name</label>
                     <input
-                      id="dept" name="dept" type="text"
-                      className="form-input"
-                      placeholder="Computing & Information Systems, 18/19"
-                      value={form.dept}
+                      id="name" name="name" type="text"
+                      className="w-full px-4 py-3 bg-white border border-purple-100 rounded-2xl font-sans text-gray-800 outline-none transition-all duration-300 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-gray-400"
+                      placeholder="Jane Doe"
+                      value={form.name}
                       onChange={handleChange}
                       required
                     />
                   </div>
-
-                  <div className="form-group-full">
-                    <label className="form-label" htmlFor="skills">Skills you can offer</label>
-                    <textarea
-                      id="skills" name="skills"
-                      className="form-textarea"
-                      placeholder="E.g., Graphic Design, Public Speaking, Logistics Coordination..."
-                      value={form.skills}
+                  <div className="flex flex-col">
+                    <label className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 font-sans" htmlFor="email">University Email</label>
+                    <input
+                      id="email" name="email" type="email"
+                      className="w-full px-4 py-3 bg-white border border-purple-100 rounded-2xl font-sans text-gray-800 outline-none transition-all duration-300 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-gray-400"
+                      placeholder="jane@std.susl.lk"
+                      value={form.email}
                       onChange={handleChange}
                       required
                     />
                   </div>
+                </div>
 
-                  <button type="submit" className="btn-submit" disabled={loading}>
-                    {loading ? (
-                      <><span className="spinner" /> Submitting…</>
-                    ) : (
-                      <>Submit Application →</>
-                    )}
-                  </button>
-                </form>
-              </>
-            )}
-          </div>
+                <div className="flex flex-col">
+                  <label className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 font-sans" htmlFor="dept">Department & Batch</label>
+                  <input
+                    id="dept" name="dept" type="text"
+                    className="w-full px-4 py-3 bg-white border border-purple-100 rounded-2xl font-sans text-gray-800 outline-none transition-all duration-300 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-gray-400"
+                    placeholder="Computing & Information Systems, 18/19"
+                    value={form.dept}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-xs md:text-sm font-semibold text-primary uppercase tracking-wider mb-2 font-sans" htmlFor="skills">Skills you can offer</label>
+                  <textarea
+                    id="skills" name="skills"
+                    className="w-full px-4 py-3 bg-white border border-purple-100 rounded-2xl font-sans text-gray-800 outline-none transition-all duration-300 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-gray-400 resize-none min-h-[120px]"
+                    placeholder="E.g., Graphic Design, Public Speaking, Logistics Coordination..."
+                    value={form.skills}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="w-full py-4 bg-gradient-to-r from-primary to-accent text-white font-bold rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-lg shadow-purple-200/50 flex items-center justify-center gap-2 font-sans disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                      Submitting…
+                    </>
+                  ) : (
+                    <>Submit Application →</>
+                  )}
+                </button>
+              </form>
+            </>
+          )}
         </div>
-
       </div>
-    </>
+    </div>
   );
 };
 
