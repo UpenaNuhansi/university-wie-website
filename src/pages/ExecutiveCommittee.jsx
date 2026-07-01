@@ -1,21 +1,115 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExComCard from '../components/ExComCard';
-import { getExComMembers } from '../services/excomService';
 import { getPastCommittees } from '../utils/dynamicExCom';
 import { excomData } from '../utils/excomData';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@iconify/react';
-import Loader from '../components/Loader';
 import AutoCarousel from '../components/AutoCarousel';
+
+// Local images for 2025/2026 Executive Committee
+import hashiniImg from '../assets/Ex com 26/Hashini Herath_Vice Secretary.JPG';
+import imashaImg from '../assets/Ex com 26/Imasha Kumarasinghe-Secretary.jpg';
+import jithmiImg from '../assets/Ex com 26/Jithmi Wickramasinghe_ Public Relations Manager.jpg';
+import piumiImg from '../assets/Ex com 26/Piumi Yasodhara_Treasurer .jpeg';
+import raaziyaImg from '../assets/Ex com 26/Raaziya Hussain _ Chair .jpg';
+import sewminiImg from '../assets/Ex com 26/Sewmini Kumaranayaka _Vice Chair .jpg';
+import vishakaImg from '../assets/Ex com 26/Vishaka Lakmali - Event Coordinator.png';
+import kaviniImg from '../assets/Ex com 26/kavini Gavesha -Volunteer Coordinator.jpeg';
+
+const rawMembersData = [
+  { filename: 'Hashini Herath_Vice Secretary.JPG', image: hashiniImg },
+  { filename: 'Imasha Kumarasinghe-Secretary.jpg', image: imashaImg },
+  { filename: 'Jithmi Wickramasinghe_ Public Relations Manager.jpg', image: jithmiImg },
+  { filename: 'Piumi Yasodhara_Treasurer .jpeg', image: piumiImg },
+  { filename: 'Raaziya Hussain _ Chair .jpg', image: raaziyaImg },
+  { filename: 'Sewmini Kumaranayaka _Vice Chair .jpg', image: sewminiImg },
+  { filename: 'Vishaka Lakmali - Event Coordinator.png', image: vishakaImg },
+  { filename: 'kavini Gavesha -Volunteer Coordinator.jpeg', image: kaviniImg }
+];
+
+const POSITION_HIERARCHY = {
+  'Chair': 1,
+  'Chairperson': 1,
+  'Vice Chair': 2,
+  'Vice Chairperson': 2,
+  'Secretary': 3,
+  'Vice Secretary': 4,
+  'Treasurer': 5,
+  'Public Relations Manager': 6,
+  'Event Coordinator': 7,
+  'Volunteer Coordinator': 8
+};
+
+const parseFilename = (filename) => {
+  const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
+  let parts = [];
+  
+  if (nameWithoutExt.includes('_')) {
+    parts = nameWithoutExt.split('_');
+  } else if (nameWithoutExt.includes('-')) {
+    parts = nameWithoutExt.split('-');
+  } else {
+    parts = [nameWithoutExt, ''];
+  }
+  
+  const name = parts[0].trim();
+  const position = parts[1] ? parts[1].trim() : '';
+  
+  const formattedName = name
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  const formattedPosition = position
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+    
+  return { name: formattedName, position: formattedPosition };
+};
+
+const localMembers = rawMembersData.map(({ filename, image }) => {
+  const { name, position } = parseFilename(filename);
+  const isTop = position.toLowerCase() === 'chair' || position.toLowerCase() === 'chairperson';
+  return {
+    name,
+    position,
+    image,
+    isTop,
+    isCurrent: true,
+    year: '2025/2026',
+    status: 'Current Excom',
+    type: 'card',
+    hierarchy: POSITION_HIERARCHY[position] || 99
+  };
+}).sort((a, b) => a.hierarchy - b.hierarchy);
 
 const ExecutiveCommittee = () => {
   const navigate = useNavigate();
   const [isReady, setIsReady] = useState(false);
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth() || {}; 
   const isAdmin = !!user;
+
+  const currentYear = '2025/2026';
+  
+  // Get other years' members from static data source
+  const otherYearsMembers = excomData
+    .filter(section => section.year !== currentYear)
+    .flatMap(section => 
+      section.members.map(member => ({
+        ...member,
+        year: section.year,
+        status: section.status || '',
+        type: section.type || 'card'
+      }))
+    );
+
+  // Get past committee posters
+  const pastPosters = getPastCommittees();
+
+  // Combine local members, past years, and posters
+  const members = [...localMembers, ...otherYearsMembers, ...pastPosters];
 
   // CSS for grain effect
   const grainStyle = {
@@ -34,77 +128,8 @@ const ExecutiveCommittee = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    fetchMembers();
+    setTimeout(() => setIsReady(true), 100);
   }, []);
-
-  const fetchMembers = async () => {
-    try {
-      setLoading(true);
-      const firestoreData = await getExComMembers();
-      const currentYear = '2025/2026';
-      const currentYearBase = excomData.find(section => section.year === currentYear)?.members || [];
-      
-      // 1. Get 2025/26 members from the committee data source
-      const currentExCom = currentYearBase.map(m => ({
-        ...m,
-        year: currentYear,
-        status: 'Current Excom',
-        type: 'card'
-      }));
-
-      const currentYearFirestore = firestoreData
-        .filter(m => m.year === currentYear)
-        .map(m => ({
-          ...m,
-          type: m.postType === 'group' ? 'poster' : 'card'
-        }));
-
-      let mergedCurrentYear = [];
-      // If admin has added any Firestore entries for the current year, show only those.
-      if (currentYearFirestore.length > 0) {
-        mergedCurrentYear = currentYearFirestore;
-      } else {
-        // Otherwise use the hardcoded committee list
-        mergedCurrentYear = [...currentExCom];
-      }
-
-      // 2. Get past committee posters from assets/post folder
-      const pastPosters = getPastCommittees();
-
-      let finalData = [];
-
-      if (firestoreData.length > 0) {
-        // Prioritize dynamic data for 2025/26, but include admin-added current year entries too
-        const otherYears = firestoreData
-          .filter(m => m.year !== currentYear)
-          .map(m => ({
-            ...m,
-            type: m.postType === 'group' ? 'poster' : (m.type || 'card')
-          }));
-        finalData = [...mergedCurrentYear, ...otherYears];
-      } else {
-        // If no firestore data, just use current excom and past posters
-        finalData = [...currentExCom, ...pastPosters];
-      }
-
-      setMembers(finalData);
-      setTimeout(() => setIsReady(true), 100);
-    } catch (error) {
-      console.error('Error fetching members:', error);
-      // Fallback: Show what we have dynamically
-      setMembers([...currentYearBase.map(m => ({
-        ...m,
-        year: '2025/2026',
-        status: 'Current Excom',
-        type: 'card'
-      })), ...getPastCommittees()]);
-      setTimeout(() => setIsReady(true), 100);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) return <Loader />;
 
   const yearGroups = [...new Set(members.map(m => m.year))].sort((a, b) => {
     return b.localeCompare(a);
