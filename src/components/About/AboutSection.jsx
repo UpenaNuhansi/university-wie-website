@@ -13,19 +13,20 @@ const AboutSection = () => {
           <h2 className="text-2xl md:text-4xl font-bold text-primary mb-6 font-serif tracking-tight">Who We Are</h2>
           <div className="space-y-6 text-gray-800 text-base md:text-lg leading-relaxed">
             <p>
-              The IEEE Women in Engineering (WIE) Student Branch Affinity Group of Sabaragamuwa University 
-              of Sri Lanka (SUSL) is a premier network of passionate students and academics. We are united by 
-              a common goal: to break down barriers and create a supportive ecosystem for women pursuing 
-              technical fields.
+              IEEE Women in Engineering (WIE) is a global network of IEEE members and volunteers dedicated to promoting female engineers and scientists and inspiring girls throughout the world to pursue academic interests in engineering and scientific careers. Aligning with the aim of IEEE WIE to advancing technology for the benefit of humanity, the IEEE WIE Student Branch Affinity Group of SUSL was established in June 2021.
             </p>
-            <p>
-              Founded on principles of inclusion and excellence, we organize workshops, technical talks, 
-              mentoring sessions, and global networking opportunities to equip our members with the skills 
-              necessary to thrive in an evolving technological landscape.
-            </p>
+
+            <div>
+              <h3 className="text-lg md:text-xl font-semibold text-primary mb-3">Aims &amp; Objectives</h3>
+              <ul className="list-disc list-inside space-y-2 text-gray-800">
+                <li>To empower female students by sharpening their Science, Technology, Engineering, and Mathematical (STEM) skills.</li>
+                <li>To develop their attitudes and soft skills in order to overcome social barriers.</li>
+                <li>To encourage them to pursue a successful career in the fields of STEM.</li>
+              </ul>
+            </div>
           </div>
         </div>
-        
+
         <div className={`lg:w-2/5 w-full transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}>
           <div className="relative group">
             <div className="absolute -inset-4 bg-gradient-to-tr from-accent to-primary rounded-3xl opacity-10 blur-xl group-hover:opacity-25 transition duration-500"></div>

@@ -142,20 +142,7 @@ const ExecutiveCommittee = () => {
   // Combine local members and past posters
   const members = [...localMembers, ...pastPosters];
 
-  // CSS for grain effect
-  const grainStyle = {
-    position: 'relative'
-  };
-
-  const grainAfterStyle = {
-    content: '""',
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
-    pointerEvents: 'none',
-    mixBlendMode: 'multiply',
-    zIndex: 0
-  };
+  // (styling simplified to match About page hero)
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -176,35 +163,27 @@ const ExecutiveCommittee = () => {
   });
 
   return (
-    <div className="bg-purple-100 min-h-screen font-sans overflow-hidden relative">
-      {/* Grain Overlay */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-50"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
-          mixBlendMode: 'multiply'
-        }}
-      ></div>
+    <div className="bg-purpleLight min-h-screen overflow-hidden relative">
       {/* Header Section */}
-      <section className="relative pt-24 pb-16 px-6 text-center overflow-hidden">
+      <section className="bg-purpleLight relative pt-24 pb-16 px-6 text-center overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 opacity-30">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purpleLight rounded-full blur-[100px]"></div>
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purpleLight rounded-full blur-[100px]"></div>
         </div>
 
         <div className="max-w-4xl mx-auto relative z-10">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-purple-100 mb-8 transition-all duration-1000 ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
-            <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
-            <span className="text-[10px] md:text-xs font-bold tracking-[0.2em] text-primary uppercase">
+          <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-purple-100 shadow-sm mb-8 transition-all duration-1000 ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></div>
+            <span className="text-[10px] md:text-xs font-semibold tracking-widest text-primary/80 uppercase font-sans">
               Leadership Legacy
             </span>
           </div>
 
-          <h1 className={`text-4xl md:text-6xl lg:text-7xl font-bold text-primary mb-8 font-serif transition-all duration-1000 delay-200 ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            Executive <span className="text-accent italic">Committee</span>
+          <h1 className={`text-4xl md:text-6xl lg:text-7xl font-bold text-primary mb-8 leading-tight font-serif transition-all duration-1000 delay-200 ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            Executive <span className="text-accent font-accentFont">Committee</span>
           </h1>
 
-          <p className={`text-gray-500 text-base md:text-lg leading-relaxed max-w-2xl mx-auto transition-all duration-1000 delay-500 ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <p className={`text-gray-800 text-base md:text-xl leading-relaxed max-w-3xl mx-auto font-medium transition-all duration-1000 delay-500 ${isReady ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             Celebrating the leaders who have shaped our chapter's journey. From our current innovators to the founders who paved the way.
           </p>
         </div>
