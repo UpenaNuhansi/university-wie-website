@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ExComCard from '../components/ExComCard';
-import { getPastCommittees } from '../utils/dynamicExCom';
-import { excomData } from '../utils/excomData';
 import { useAuth } from '../hooks/useAuth';
 import { Icon } from '@iconify/react';
 import AutoCarousel from '../components/AutoCarousel';
@@ -17,6 +15,20 @@ import sewminiImg from '../assets/Ex com 26/Sewmini Kumaranayaka _Vice Chair .jp
 import vishakaImg from '../assets/Ex com 26/Vishaka Lakmali - Event Coordinator.png';
 import kaviniImg from '../assets/Ex com 26/kavini Gavesha -Volunteer Coordinator.jpeg';
 
+// Local images for Past Executive Committees
+import past2021_22_2 from '../assets/past excom/2021_22(2).jpg';
+import past2021_22 from '../assets/past excom/2021_22.jpg';
+import past2022_23_1 from '../assets/past excom/2022_23(1).jpg';
+import past2022_23 from '../assets/past excom/2022_23.jpg';
+import past2023_24_1 from '../assets/past excom/2023_24(1).jpg';
+import past2023_24_2 from '../assets/past excom/2023_24(2).jpg';
+import past2023_24 from '../assets/past excom/2023_24.jpg';
+import past2024_25_1 from '../assets/past excom/2024_25(1).jpg';
+import past2024_25_2 from '../assets/past excom/2024_25(2).jpg';
+import past2024_25 from '../assets/past excom/2024_25.jpg';
+import past2025_26_1 from '../assets/past excom/2025_26(1).jpg';
+import past2025_26 from '../assets/past excom/2025_26.jpg';
+
 const rawMembersData = [
   { filename: 'Hashini Herath_Vice Secretary.JPG', image: hashiniImg },
   { filename: 'Imasha Kumarasinghe-Secretary.jpg', image: imashaImg },
@@ -26,6 +38,21 @@ const rawMembersData = [
   { filename: 'Sewmini Kumaranayaka _Vice Chair .jpg', image: sewminiImg },
   { filename: 'Vishaka Lakmali - Event Coordinator.png', image: vishakaImg },
   { filename: 'kavini Gavesha -Volunteer Coordinator.jpeg', image: kaviniImg }
+];
+
+const rawPastExComData = [
+  { filename: '2021_22(2).jpg', image: past2021_22_2 },
+  { filename: '2021_22.jpg', image: past2021_22 },
+  { filename: '2022_23(1).jpg', image: past2022_23_1 },
+  { filename: '2022_23.jpg', image: past2022_23 },
+  { filename: '2023_24(1).jpg', image: past2023_24_1 },
+  { filename: '2023_24(2).jpg', image: past2023_24_2 },
+  { filename: '2023_24.jpg', image: past2023_24 },
+  { filename: '2024_25(1).jpg', image: past2024_25_1 },
+  { filename: '2024_25(2).jpg', image: past2024_25_2 },
+  { filename: '2024_25.jpg', image: past2024_25 },
+  { filename: '2025_26(1).jpg', image: past2025_26_1 },
+  { filename: '2025_26.jpg', image: past2025_26 }
 ];
 
 const POSITION_HIERARCHY = {
@@ -69,6 +96,18 @@ const parseFilename = (filename) => {
   return { name: formattedName, position: formattedPosition };
 };
 
+const deriveYearFromFilename = (filename) => {
+  const match = filename.match(/^(\d{4})_(\d{2})/);
+  if (match) {
+    const startYear = match[1];
+    const endYearShort = match[2];
+    const endYearCentury = startYear.slice(0, 2);
+    const endYear = `${endYearCentury}${endYearShort}`;
+    return `${startYear}/${endYear}`;
+  }
+  return 'Unknown Year';
+};
+
 const localMembers = rawMembersData.map(({ filename, image }) => {
   const { name, position } = parseFilename(filename);
   const isTop = position.toLowerCase() === 'chair' || position.toLowerCase() === 'chairperson';
@@ -85,31 +124,23 @@ const localMembers = rawMembersData.map(({ filename, image }) => {
   };
 }).sort((a, b) => a.hierarchy - b.hierarchy);
 
+const pastPosters = rawPastExComData.map(({ filename, image }) => {
+  const year = deriveYearFromFilename(filename);
+  return {
+    year,
+    image,
+    type: 'poster'
+  };
+}).filter(p => p.year !== 'Unknown Year');
+
 const ExecutiveCommittee = () => {
   const navigate = useNavigate();
   const [isReady, setIsReady] = useState(false);
   const { user } = useAuth() || {}; 
   const isAdmin = !!user;
 
-  const currentYear = '2025/2026';
-  
-  // Get other years' members from static data source
-  const otherYearsMembers = excomData
-    .filter(section => section.year !== currentYear)
-    .flatMap(section => 
-      section.members.map(member => ({
-        ...member,
-        year: section.year,
-        status: section.status || '',
-        type: section.type || 'card'
-      }))
-    );
-
-  // Get past committee posters
-  const pastPosters = getPastCommittees();
-
-  // Combine local members, past years, and posters
-  const members = [...localMembers, ...otherYearsMembers, ...pastPosters];
+  // Combine local members and past posters
+  const members = [...localMembers, ...pastPosters];
 
   // CSS for grain effect
   const grainStyle = {
