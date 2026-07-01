@@ -1,8 +1,364 @@
 import { useEffect, useState } from "react";
 import Loader from "../components/Loader";
-import { getEvents } from "../services/eventService";
 import { useNavigate } from "react-router-dom";
 import { useInView } from "../hooks/useInView";
+
+// Upcoming Events
+import upcomingPathForward3 from "../assets/Event/Upcoming event/Path Forward 3.0.jpg";
+
+// Past Events
+import past1 from "../assets/Event/Past event/1.jpeg";
+import past3 from "../assets/Event/Past event/3.jpeg";
+import past79563a15 from "../assets/Event/Past event/79563a15-8cb3-417c-b6ef-3b5b61081ebb.jpg";
+import pastHope from "../assets/Event/Past event/HOPE.jpeg";
+import pastHope1 from "../assets/Event/Past event/HOPE1.jpeg";
+import pastArtexplore1 from "../assets/Event/Past event/artexplore1.jpeg";
+import pastArtexplore2 from "../assets/Event/Past event/artexplore2.jpeg";
+import pastArtexplore3 from "../assets/Event/Past event/artexplore3.jpeg";
+import pastArtexplore4 from "../assets/Event/Past event/artexplore4.jpeg";
+import pastAurelia3 from "../assets/Event/Past event/aurelia3.jpeg";
+import pastHope1_alt from "../assets/Event/Past event/hope 1.jpeg";
+import pastHope2_0 from "../assets/Event/Past event/hope 2.0.jpeg";
+import pastHope2_1 from "../assets/Event/Past event/hope 2.1.jpeg";
+import pastHope2_3 from "../assets/Event/Past event/hope 2.3.jpeg";
+import pastNexora1_2 from "../assets/Event/Past event/nexora1.2.jpeg";
+import pastNexora1 from "../assets/Event/Past event/nexora1.jpeg";
+import pastPathforward1 from "../assets/Event/Past event/pathforward 1.jpeg";
+import pastPathforward2 from "../assets/Event/Past event/pathforward2.jpeg";
+import pastPathforward3 from "../assets/Event/Past event/pathforward3.jpeg";
+import pastPathforward4 from "../assets/Event/Past event/pathforward4.jpeg";
+import pastPearlhack3_0 from "../assets/Event/Past event/pearlhack 3.0.jpeg";
+import pastPearlhack3_1 from "../assets/Event/Past event/pearlhack 3.1.jpeg";
+import pastPearlhack2_0 from "../assets/Event/Past event/pearlhack2.0.jpeg";
+import pastPearlhack2_1 from "../assets/Event/Past event/pearlhack2.1.jpeg";
+import pastPearlhack3_2 from "../assets/Event/Past event/pearlhack3.2.jpeg";
+import pastPearlhack3_3 from "../assets/Event/Past event/pearlhack3.3.jpeg";
+import pastVision2 from "../assets/Event/Past event/vision2.jpeg";
+import pastVisionx1 from "../assets/Event/Past event/visionx1.jpeg";
+import pastVisionx3 from "../assets/Event/Past event/visionx3.jpeg";
+import pastVisionx4 from "../assets/Event/Past event/visionx4.jpeg";
+
+export const localEventsData = [
+  // Upcoming Event
+  {
+    id: "upcoming-1",
+    image: upcomingPathForward3,
+    images: [upcomingPathForward3],
+    title: "Path Forward 3.0",
+    date: "2026-08-15",
+    description: "A comprehensive mentorship session on career planning, CV building, and industry opportunities for female undergraduates.",
+    location: "FITS Hall",
+    startTime: "09:00",
+    endTime: "12:00",
+    eventType: "Workshop",
+    format: "Physical",
+    registrationLink: "https://docs.google.com/forms/d/e/1FAIpQLSfXYZ...",
+    registrationLabel: "Register Now"
+  },
+  // Past Events
+  {
+    id: "past-1",
+    image: past1,
+    images: [past1],
+    title: "Inauguration Ceremony",
+    date: "2024-02-10",
+    description: "Celebrating the commencement of our WIE student branch chapter with inspiring keynotes.",
+    location: "Auditorium",
+    eventType: "Ceremony"
+  },
+  {
+    id: "past-2",
+    image: past3,
+    images: [past3],
+    title: "Tech Talk: AI & ML",
+    date: "2024-04-15",
+    description: "An insightful discussion on modern artificial intelligence applications.",
+    location: "Online",
+    eventType: "Tech Talk",
+    youtubeLink: "https://youtube.com"
+  },
+  {
+    id: "past-3",
+    image: past79563a15,
+    images: [past79563a15],
+    title: "Industry Panel Discussion",
+    date: "2024-06-20",
+    description: "Connecting undergraduates with female leaders in engineering.",
+    location: "Seminar Room",
+    eventType: "Panel"
+  },
+  {
+    id: "past-4",
+    image: pastHope,
+    images: [pastHope],
+    title: "Project HOPE",
+    date: "2024-09-05",
+    description: "Bringing STEM education and digital literacy to rural schools.",
+    location: "Rural School Center",
+    eventType: "Outreach"
+  },
+  {
+    id: "past-5",
+    image: pastHope1,
+    images: [pastHope1],
+    title: "HOPE Phase 1",
+    date: "2024-10-12",
+    description: "Conducting hands-on physics and coding workshops for children.",
+    location: "School Lab",
+    eventType: "Outreach"
+  },
+  {
+    id: "past-6",
+    image: pastArtexplore1,
+    images: [pastArtexplore1],
+    title: "ArtExplore UI/UX",
+    date: "2025-01-15",
+    description: "Unveiling the principles of visual design and user experience.",
+    location: "Online",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-7",
+    image: pastArtexplore2,
+    images: [pastArtexplore2],
+    title: "ArtExplore Digital Art",
+    date: "2025-01-20",
+    description: "Introduction to tools like Illustrator and Photoshop.",
+    location: "Online",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-8",
+    image: pastArtexplore3,
+    images: [pastArtexplore3],
+    title: "ArtExplore Design Sprint",
+    date: "2025-01-25",
+    description: "Working in teams to prototype visual concepts.",
+    location: "Design Studio",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-9",
+    image: pastArtexplore4,
+    images: [pastArtexplore4],
+    title: "ArtExplore Exhibition",
+    date: "2025-01-30",
+    description: "Showcasing creative designs submitted by participants.",
+    location: "Exhibition Hall",
+    eventType: "Exhibition"
+  },
+  {
+    id: "past-10",
+    image: pastAurelia3,
+    images: [pastAurelia3],
+    title: "Aurelia Workshop 3",
+    date: "2025-02-18",
+    description: "Final session of the Aurelia programming bootcamp.",
+    location: "IT Center",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-11",
+    image: pastHope1_alt,
+    images: [pastHope1_alt],
+    title: "HOPE Bootcamp",
+    date: "2024-11-22",
+    description: "Equipping young girls with basic computer literacy.",
+    location: "Community Center",
+    eventType: "Outreach"
+  },
+  {
+    id: "past-12",
+    image: pastHope2_0,
+    images: [pastHope2_0],
+    title: "Project HOPE 2.0 Launch",
+    date: "2025-03-01",
+    description: "Kickstarting the second phase of our outreach program.",
+    location: "Main Auditorium",
+    eventType: "Outreach"
+  },
+  {
+    id: "past-13",
+    image: pastHope2_1,
+    images: [pastHope2_1],
+    title: "HOPE 2.1 School Session",
+    date: "2025-03-10",
+    description: "School visits teaching robotics and hardware basics.",
+    location: "Local School",
+    eventType: "Outreach"
+  },
+  {
+    id: "past-14",
+    image: pastHope2_3,
+    images: [pastHope2_3],
+    title: "HOPE 2.3 Closing Ceremony",
+    date: "2025-03-25",
+    description: "Distributing certifications and celebrating accomplishments.",
+    location: "School Hall",
+    eventType: "Ceremony"
+  },
+  {
+    id: "past-15",
+    image: pastNexora1_2,
+    images: [pastNexora1_2],
+    title: "Nexora 1.2 Tech Expo",
+    date: "2025-04-25",
+    description: "Exhibiting brilliant tech prototypes from student innovators.",
+    location: "Engineering Faculty",
+    eventType: "Exhibition"
+  },
+  {
+    id: "past-16",
+    image: pastNexora1,
+    images: [pastNexora1],
+    title: "Nexora 1.0 Symposium",
+    date: "2025-04-10",
+    description: "A technology symposium discussing the future of clean energy.",
+    location: "Main Hall",
+    eventType: "Symposium"
+  },
+  {
+    id: "past-17",
+    image: pastPathforward1,
+    images: [pastPathforward1],
+    title: "Path Forward 1.0",
+    date: "2024-08-01",
+    description: "Career development workshop series - session 1.",
+    location: "Seminar Room 2",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-18",
+    image: pastPathforward2,
+    images: [pastPathforward2],
+    title: "Path Forward 2.0",
+    date: "2025-02-05",
+    description: "Empowering tech leaders through career transitions.",
+    location: "FITS Hall",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-19",
+    image: pastPathforward3,
+    images: [pastPathforward3],
+    title: "Path Forward Career Expo",
+    date: "2025-02-10",
+    description: "Connecting students directly with local software companies.",
+    location: "Main Exhibition Hall",
+    eventType: "Expo"
+  },
+  {
+    id: "past-20",
+    image: pastPathforward4,
+    images: [pastPathforward4],
+    title: "Path Forward Resume Review",
+    date: "2025-02-15",
+    description: "Personalized CV evaluation and mock interviews.",
+    location: "Placement Center",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-21",
+    image: pastPearlhack2_0,
+    images: [pastPearlhack2_0],
+    title: "Pearl Hack 2.0 Hackathon",
+    date: "2024-07-15",
+    description: "The second edition of our women-only hackathon.",
+    location: "Online",
+    eventType: "Hackathon"
+  },
+  {
+    id: "past-22",
+    image: pastPearlhack2_1,
+    images: [pastPearlhack2_1],
+    title: "Pearl Hack 2.1 Pitching",
+    date: "2024-07-16",
+    description: "Final pitching of prototype solutions to industry judges.",
+    location: "IT Boardroom",
+    eventType: "Hackathon"
+  },
+  {
+    id: "past-23",
+    image: pastPearlhack3_0,
+    images: [pastPearlhack3_0],
+    title: "Pearl Hack 3.0 Launch",
+    date: "2025-07-20",
+    description: "Opening ceremony and team formation for Pearl Hack 3.0.",
+    location: "Online / Discord",
+    eventType: "Hackathon"
+  },
+  {
+    id: "past-24",
+    image: pastPearlhack3_1,
+    images: [pastPearlhack3_1],
+    title: "Pearl Hack 3.1 Coding Phase",
+    date: "2025-07-21",
+    description: "48 hours of intense hacking and product building.",
+    location: "Online",
+    eventType: "Hackathon"
+  },
+  {
+    id: "past-25",
+    image: pastPearlhack3_2,
+    images: [pastPearlhack3_2],
+    title: "Pearl Hack 3.2 Mentorship",
+    date: "2025-07-22",
+    description: "Mentoring sessions with senior developers and tech architects.",
+    location: "Online / Zoom",
+    eventType: "Hackathon"
+  },
+  {
+    id: "past-26",
+    image: pastPearlhack3_3,
+    images: [pastPearlhack3_3],
+    title: "Pearl Hack 3.3 Awards",
+    date: "2025-07-23",
+    description: "Announcing the winners and concluding Pearl Hack 3.0.",
+    location: "Online",
+    eventType: "Hackathon"
+  },
+  {
+    id: "past-27",
+    image: pastVision2,
+    images: [pastVision2],
+    title: "Vision 2.0 Conference",
+    date: "2024-05-10",
+    description: "A premier conference focusing on diversity in STEM leadership.",
+    location: "Hotel Grand Palace",
+    eventType: "Conference"
+  },
+  {
+    id: "past-28",
+    image: pastVisionx1,
+    images: [pastVisionx1],
+    title: "VisionX IDEATION",
+    date: "2025-06-05",
+    description: "Ideation workshop on tackling real-world sustainability issues.",
+    location: "Seminar Room 1",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-29",
+    image: pastVisionx3,
+    images: [pastVisionx3],
+    title: "VisionX Prototype",
+    date: "2025-06-15",
+    description: "Developing innovative hardware and software solutions.",
+    location: "Engineering Lab",
+    eventType: "Workshop"
+  },
+  {
+    id: "past-30",
+    image: pastVisionx4,
+    images: [pastVisionx4],
+    title: "VisionX Finals",
+    date: "2025-06-25",
+    description: "Grand final presentations and closing ceremony.",
+    location: "Main Auditorium",
+    eventType: "Ceremony"
+  }
+].filter(item => item.image);
+
 
 function Meta({ icon, text }) {
   return (
@@ -234,8 +590,8 @@ function PastCard({ event, index, onClick }) {
 }
 
 export default function Events() {
-  const [events, setEvents]       = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [events]                  = useState(localEventsData);
+  const [loading]                 = useState(false);
   const [heroReady, setHeroReady] = useState(false);
   const [upcomingRef, upcomingVisible] = useInView(0.05);
   const [pastRef, pastVisible]         = useInView(0.05);
@@ -275,20 +631,6 @@ export default function Events() {
   useEffect(() => {
     const timer = setTimeout(() => setHeroReady(true), 100);
     return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const data = await getEvents();
-        setEvents(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    })();
   }, []);
 
   if (loading) return <Loader />;

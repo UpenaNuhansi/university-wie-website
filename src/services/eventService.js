@@ -1,17 +1,14 @@
 import {
   collection,
   addDoc,
-  getDocs,
   deleteDoc,
   doc,
   updateDoc,
-  query,
-  orderBy,
-  getDoc,
   Timestamp,
-  onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { localEventsData } from "../pages/Events";
+
 
 const EVENTS_COLLECTION = "events";
 
@@ -61,51 +58,32 @@ const convertEventData = (data) => {
 };
 
 export const getEvents = async () => {
-  const snap = await getDocs(collection(db, EVENTS_COLLECTION));
-  const items = snap.docs.map((d) => ({ id: d.id, ...convertEventData(d.data()) }));
-
-  // Sort client-side: prefer events with a date (newest first), then fall back to createdAt
+  const items = [...localEventsData];
   items.sort((a, b) => {
-    const aDate = a.date instanceof Date ? a.date.getTime() : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
-    const bDate = b.date instanceof Date ? b.date.getTime() : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
+    const aDate = a.date ? new Date(a.date).getTime() : 0;
+    const bDate = b.date ? new Date(b.date).getTime() : 0;
     return bDate - aDate;
   });
-
   return items;
 };
 
 export const subscribeToEvents = (onChange, onError) => {
-  const col = collection(db, EVENTS_COLLECTION);
-  const unsub = onSnapshot(
-    col,
-    (snap) => {
-      const items = snap.docs.map((d) => ({ id: d.id, ...convertEventData(d.data()) }));
-      items.sort((a, b) => {
-        const aDate = a.date instanceof Date ? a.date.getTime() : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
-        const bDate = b.date instanceof Date ? b.date.getTime() : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
-        return bDate - aDate;
-      });
-      onChange(items);
-    },
-    (err) => {
-      if (onError) onError(err);
-    }
-  );
-
-  return unsub;
+  const items = [...localEventsData];
+  items.sort((a, b) => {
+    const aDate = a.date ? new Date(a.date).getTime() : 0;
+    const bDate = b.date ? new Date(b.date).getTime() : 0;
+    return bDate - aDate;
+  });
+  onChange(items);
+  return () => {};
 };
 
 export const getEventById = async (id) => {
-  const refDoc = doc(db, EVENTS_COLLECTION, id);
-  const snap = await getDoc(refDoc);
-
-  if (!snap.exists()) throw new Error("Event not found");
-
-  return {
-    id: snap.id,
-    ...convertEventData(snap.data()),
-  };
+  const event = localEventsData.find((e) => e.id === id);
+  if (!event) throw new Error("Event not found");
+  return event;
 };
+
 
 export const addEvent = async (event) => {
   const images = normalizeEventImages(event);
