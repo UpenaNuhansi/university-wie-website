@@ -1,8 +1,41 @@
 // pages/Gallery.jsx
 
 import { useEffect, useRef, useState } from 'react';
-import { getGalleryItems } from '../services/galleryService';
 import GalleryCard from '../components/GalleryCard';
+
+import aurelia1 from '../assets/Gallery/Aurelia(1).jpg';
+import aurelia2 from '../assets/Gallery/Aurelia(2).jpg';
+import aurelia3 from '../assets/Gallery/Aurelia(3).jpg';
+import hope1 from '../assets/Gallery/Hope(1).jpg';
+import hope2 from '../assets/Gallery/Hope(2).jpg';
+import hope3 from '../assets/Gallery/Hope(3).jpg';
+import hope4 from '../assets/Gallery/Hope(4).jpg';
+import hope5 from '../assets/Gallery/Hope(5).jpg';
+import pearlHack1 from '../assets/Gallery/Pearl Hack(1).jpg';
+import pearlHack from '../assets/Gallery/Pearl Hack.jpg';
+
+const localImages = [
+  { category: 'AURELIA', image: aurelia1, title: 'Aurelia Workshop' },
+  { category: 'AURELIA', image: aurelia2, title: 'Aurelia Coding Session' },
+  { category: 'AURELIA', image: aurelia3, title: 'Aurelia Mentoring' },
+  { category: 'HOPE', image: hope1, title: 'HOPE Outreach' },
+  { category: 'HOPE', image: hope2, title: 'HOPE Seminar' },
+  { category: 'HOPE', image: hope3, title: 'HOPE Team Gathering' },
+  { category: 'HOPE', image: hope4, title: 'HOPE Panel Discussion' },
+  { category: 'HOPE', image: hope5, title: 'HOPE STEM Activities' },
+  { category: 'PEARL HACK', image: pearlHack1, title: 'Pearl Hack Hackathon' },
+  { category: 'PEARL HACK', image: pearlHack, title: 'Pearl Hack Closing' },
+].filter(item => item.image);
+
+const galleryImages = localImages.map((img, index) => ({
+  id: index + 1,
+  category: img.category,
+  image: img.image,
+  title: img.title,
+  description: `${img.title} event image.`,
+  createdAt: new Date(2026, 0, index + 1)
+}));
+
 
 /* ─────────────────────────────────────────────
    Inject global styles once (fonts + keyframes)
@@ -75,14 +108,14 @@ function useReveal(threshold = 0.08) {
   return [ref, visible];
 }
 
-const FIXED_CATEGORIES = ['All', 'Aurelia', 'PerlHack', 'Hope'];
+const FIXED_CATEGORIES = ['All', 'AURELIA', 'PEARL HACK', 'HOPE'];
 
 export default function Gallery() {
-  const [gallery, setGallery]               = useState([]);
-  const [filtered, setFiltered]             = useState([]);
+  const [gallery]                           = useState(galleryImages);
+  const [filtered, setFiltered]             = useState(galleryImages);
   const [activeCategory, setActiveCategory] = useState('All');
   const [visibleCount, setVisibleCount]     = useState(6);
-  const [loading, setLoading]               = useState(true);
+  const [loading]                           = useState(false);
   const [gridKey, setGridKey]               = useState(0); // forces re-animation on filter
 
   const [heroRef,  heroVisible]  = useReveal(0.05);
@@ -91,21 +124,7 @@ export default function Gallery() {
 
   useEffect(() => {
     injectGalleryStyles();
-    fetchGallery();
   }, []);
-
-  const fetchGallery = async () => {
-    try {
-      setLoading(true);
-      const data = await getGalleryItems();
-      setGallery(data);
-      setFiltered(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const dynamicCategories = [
     ...FIXED_CATEGORIES,
