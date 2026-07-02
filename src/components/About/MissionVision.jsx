@@ -15,10 +15,8 @@ const MissionVision = () => {
           </div>
           <h3 className="text-2xl font-bold text-primary mb-4 font-serif">Our Mission</h3>
           <p className="text-gray-800 text-base md:text-lg leading-relaxed font-sans">
-            To inspire, engage, and encourage young women to explore their 
-            potential in science, technology, engineering, and mathematics, 
-            providing them with the necessary tools, mentorship, and community 
-            to succeed globally.
+            Facilitating the recruitment and retention of women in technical 
+            disciplines globally.
           </p>
         </div>
 
@@ -29,9 +27,8 @@ const MissionVision = () => {
           </div>
           <h3 className="text-2xl font-bold text-primary mb-4 font-serif">Our Vision</h3>
           <p className="text-gray-800 text-base md:text-lg leading-relaxed font-sans">
-            To cultivate a vibrant, inclusive global community where female 
-            technologists and engineers are recognized, celebrated, and 
-            empowered to drive transformative innovation and leadership.
+            Leading to a vibrant community of IEEE women and men collectively 
+            using their diverse talents to innovate for the benefit of humanity.
           </p>
         </div>
       </div>

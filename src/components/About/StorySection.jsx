@@ -3,19 +3,86 @@ import { useInView } from '../../hooks/useInView';
 
 const milestones = [
   {
-    year: '2019',
-    title: 'Inception & Establishment',
-    description: 'The WIE Student Branch Affinity Group of SUSL was officially formed with a foundational cohort of 50 visionary students, laying the groundwork for a dedicated STEM community.'
+    year: '01',
+    title: 'PearlHack 3.0',
+    description: 'Largest women’s hackathon by IEEE WIE SUSL, held alongside the ICARC International Conference on Advanced Research in Computing. Featured Ideathon and Designathon phases, supported by workshops that equipped participants with essential skills to bring ideas to life.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/100069740625048/posts/971998438468168/?mibextid=rS40aB7S9Ucbxw6v' }
+    ]
   },
   {
-    year: '2021',
-    title: 'First International Collaboration',
-    description: 'Partnered with Region 10 WIE to host a virtual global symposium, connecting local students with leading international researchers and industry experts during the global shift to digital platforms.'
+    year: '02',
+    title: 'PathForward V2.0',
+    description: 'Inspiring panel discussion with industry experts sharing real-world experiences and career guidance. Focused on helping interns and undergraduates navigate the evolving IT landscape and shape future career paths.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/share/p/1L3np2Nj52/?mibextid=oFDknk' }
+    ]
   },
   {
-    year: '2023',
-    title: 'Award of Excellence',
-    description: 'Recognized as the "Most Outstanding Affinity Group" in the local section for unparalleled dedication to member engagement and high-impact technical workshops.'
+    year: '03',
+    title: 'VisionX E-Magazine',
+    description: 'Final phase of the VisionX Top 10 Article Competition, featuring IoT-focused articles. First-ever magazine published by IEEE WIE SUSL and available on the Faculty of Computing’s official website.',
+    links: [
+      { label: 'Facebook', href: 'https://web.facebook.com/100069740625048/posts/1053224873678857/?mibextid=rS40aB7S9Ucbxw6v&_rdc=1&_rdr' },
+      { label: 'E-Magazine', href: 'https://www.sab.ac.lk/computing/student-societies/IEEE-WIE-Affinity-Group-magazine' }
+    ]
+  },
+  {
+    year: '04',
+    title: 'Hope 2.0',
+    description: 'Outreach initiative empowering underprivileged rural students through technology-based education. Combined engaging sessions, mentorship, and the creation of school-based tech clubs like CodeLab.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/share/v/16nKpCrgWK/?mibextid=oFDknk' }
+    ]
+  },
+  {
+    year: '05',
+    title: 'ArtXplore',
+    description: 'Poster design competition for ages 14–30, jointly organized by the IEEE WIE Affinity Groups of Sabaragamuwa University of Sri Lanka and the University of Peradeniya. Showcased creativity in digital and hand-drawn art through an IEEE-supported platform.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/share/p/1fkdmabTKp/?mibextid=xfxF2i' }
+    ]
+  },
+  {
+    year: '06',
+    title: 'PathForward V1.0',
+    description: 'Session on “Navigating the Culture of the IT Industry.” Empowered undergraduates in Sri Lanka with knowledge, skills, and opportunities to integrate into fast-paced tech environments.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/share/p/1UbEa5wkNp/?mibextid=oFDknk' }
+    ]
+  },
+  {
+    year: '07',
+    title: 'PearlHack 2.0',
+    description: 'Largest women’s hackathon by IEEE WIE SUSL, held alongside the ICARC International Conference on Advanced Research in Computing. Featured Ideathon and Designathon phases, supported by workshops that equipped participants with essential skills to bring ideas to life.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/100064687987174/posts/827114802788112/?mibextid=rS40aB7S9Ucbxw6v' },
+      { label: 'PearlHack 2.0', href: 'https://pearl-hack-2-0.vercel.app/' }
+    ]
+  },
+  {
+    year: '08',
+    title: 'VisionX',
+    description: 'IoT-focused article competition to promote innovation and learning. Included webinars, mini ideathons, and article writing, and recognized top contributors for excellence in emerging tech.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/100069740625048/posts/891525649848781/?mibextid=rS40aB7S9Ucbxw6v' }
+    ]
+  },
+  {
+    year: '09',
+    title: 'A Hope 1.0',
+    description: 'Charitable initiative supporting underprivileged students. Donated books to school libraries to enhance education and inspire dreams through meaningful opportunities.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/share/p/1AtXpvNzjW/?mibextid=xfxF2i' }
+    ]
+  },
+  {
+    year: '10',
+    title: 'Aurelia 1.0',
+    description: 'Celebration of WIE Day honoring women in engineering and technology. Featured inspirational talks, networking sessions, and collaborative activities that encouraged leadership, innovation, and community building.',
+    links: [
+      { label: 'Facebook', href: 'https://www.facebook.com/100064687987174/posts/941165698049688/?mibextid=rS40aB7S9Ucbxw6v' }
+    ]
   }
 ];
 
@@ -54,6 +121,21 @@ const StorySection = () => {
                 <div className="flex-1 bg-white p-6 md:p-8 rounded-3xl border border-purple-100 shadow-sm hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 ml-8 md:ml-0">
                   <h4 className="text-lg md:text-xl font-bold text-primary mb-3 font-serif tracking-tight">{item.title}</h4>
                   <p className="text-gray-800 leading-relaxed text-sm md:text-base font-sans">{item.description}</p>
+                  {item.links && item.links.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {item.links.map((link) => (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center rounded-full border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-semibold text-primary transition-colors duration-300 hover:bg-purple-100 hover:border-purple-300"
+                        >
+                          {link.label}
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
